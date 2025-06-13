@@ -846,13 +846,13 @@ def play_audio(input_file_path: str) -> TextContent:
 
 
 @mcp.tool(
-    description="""Get conversation details including full transcript.
+    description="""Get conversation details including full transcript. By default, waits for the conversation to complete.
     
     ⚠️ COST WARNING: This tool makes API calls which may incur costs.
     
     Args:
         conversation_id: The ID of the conversation to retrieve
-        wait_for_completion: If True, wait for conversation to complete before returning (max 5 minutes)
+        wait_for_completion: If True (default), wait for conversation to complete before returning (max 5 minutes). Set to False for immediate return.
         include_analysis: Include conversation analysis data if available
     
     Returns:
@@ -861,7 +861,7 @@ def play_audio(input_file_path: str) -> TextContent:
 )
 async def get_conversation(
     conversation_id: str,
-    wait_for_completion: bool = False,
+    wait_for_completion: bool = True,
     include_analysis: bool = True
 ) -> TextContent:
     """Get conversation details with optional waiting for completion."""

@@ -1,0 +1,57 @@
+{
+  "name": "@199-biotechnologies/elevenlabs-mcp-enhanced",
+  "version": "0.5.0",
+  "description": "Enhanced ElevenLabs MCP Server with conversation history features",
+  "main": "index.js",
+  "bin": {
+    "elevenlabs-mcp-enhanced": "./bin/elevenlabs-mcp-enhanced.js"
+  },
+  "scripts": {
+    "start": "node bin/elevenlabs-mcp-enhanced.js",
+    "postinstall": "node scripts/setup.js"
+  },
+  "keywords": [
+    "elevenlabs",
+    "mcp",
+    "model-context-protocol",
+    "text-to-speech",
+    "speech-to-text",
+    "voice-cloning",
+    "conversational-ai"
+  ],
+  "author": "Boris Djordjevic <boris@199longevity.com>",
+  "contributors": [
+    "199 Longevity Team",
+    "Jacek Duszenko <jacek@elevenlabs.io>",
+    "Paul Asjes <paul.asjes@elevenlabs.io>",
+    "Louis Jordan <louis@elevenlabs.io>",
+    "Luke Harries <luke@elevenlabs.io>"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/199-biotechnologies/elevenlabs-mcp-enhanced.git"
+  },
+  "bugs": {
+    "url": "https://github.com/199-biotechnologies/elevenlabs-mcp-enhanced/issues"
+  },
+  "homepage": "https://github.com/199-biotechnologies/elevenlabs-mcp-enhanced#readme",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "cross-spawn": "^7.0.3",
+    "dotenv": "^16.3.1",
+    "which": "^3.0.1"
+  },
+  "files": [
+    "bin/",
+    "scripts/",
+    "elevenlabs_mcp/",
+    "pyproject.toml",
+    "setup.py",
+    "README.md",
+    "LICENSE",
+    ".env.example"
+  ]
+}

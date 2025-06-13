@@ -33,11 +33,34 @@ This is an enhanced fork of the official ElevenLabs <a href="https://github.com/
 
 ## Quickstart with Claude Desktop
 
+### Option 1: Using npm/npx (Recommended - No installation required!)
+
 1. Get your API key from [ElevenLabs](https://elevenlabs.io/app/settings/api-keys). There is a free tier with 10k credits per month.
+2. Go to Claude > Settings > Developer > Edit Config > claude_desktop_config.json to include the following:
+
+```json
+{
+  "mcpServers": {
+    "ElevenLabs": {
+      "command": "npx",
+      "args": ["@199-biotechnologies/elevenlabs-mcp-enhanced"],
+      "env": {
+        "ELEVENLABS_API_KEY": "<insert-your-api-key-here>"
+      }
+    }
+  }
+}
+```
+
+That's it! No installation needed - npx will automatically download and run the server.
+
+### Option 2: Using Python and uv
+
+1. Get your API key from [ElevenLabs](https://elevenlabs.io/app/settings/api-keys).
 2. Install `uv` (Python package manager), install with `curl -LsSf https://astral.sh/uv/install.sh | sh` or see the `uv` [repo](https://github.com/astral-sh/uv) for additional install methods.
 3. Go to Claude > Settings > Developer > Edit Config > claude_desktop_config.json to include the following:
 
-```
+```json
 {
   "mcpServers": {
     "ElevenLabs": {
@@ -49,14 +72,19 @@ This is an enhanced fork of the official ElevenLabs <a href="https://github.com/
     }
   }
 }
-
 ```
 
 If you're using Windows, you will have to enable "Developer Mode" in Claude Desktop to use the MCP server. Click "Help" in the hamburger menu at the top left and select "Enable Developer Mode".
 
 ## Other MCP clients
 
-For other clients like Cursor and Windsurf, run:
+### Using npm/npx:
+For other clients like Cursor and Windsurf, you can run the server directly:
+```bash
+npx @199-biotechnologies/elevenlabs-mcp-enhanced --api-key YOUR_API_KEY
+```
+
+### Using Python:
 1. `pip install elevenlabs-mcp`
 2. `python -m elevenlabs_mcp --api-key={{PUT_YOUR_API_KEY_HERE}} --print` to get the configuration. Paste it into appropriate configuration directory specified by your MCP client.
 
@@ -78,11 +106,13 @@ Try asking Claude:
 
 With the enhanced conversation tools, you can now:
 
-- "Get the conversation transcript from conversation ID abc123"
+- "Get the conversation transcript from conversation ID abc123" (automatically waits for completion)
 - "List all conversations from my agent and show me the completed ones"
-- "Wait for conversation xyz789 to finish and then give me the full transcript"
+- "Get conversation xyz789 immediately without waiting" (set wait_for_completion=false)
 - "Show me all conversations in JSON format with timestamps"
 - "Get the conversation history including analysis data"
+
+**Note:** The `get_conversation` tool now waits for conversations to complete by default (up to 5 minutes), ensuring you always get the full transcript.
 
 ## Optional features
 
