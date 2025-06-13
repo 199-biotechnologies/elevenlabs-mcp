@@ -1,4 +1,4 @@
-![export](https://github.com/user-attachments/assets/ee379feb-348d-48e7-899c-134f7f7cd74f)
+# ElevenLabs MCP Enhanced
 
 <div class="title-block" style="text-align: center;" align="center">
 
@@ -9,10 +9,27 @@
 
 </div>
 
+<p align="center">
+  <strong>Enhanced fork of the official ElevenLabs MCP server</strong> with additional conversational AI features including conversation history and transcript retrieval.
+</p>
 
 <p align="center">
-  Official ElevenLabs <a href="https://github.com/modelcontextprotocol">Model Context Protocol (MCP)</a> server that enables interaction with powerful Text to Speech and audio processing APIs. This server allows MCP clients like <a href="https://www.anthropic.com/claude">Claude Desktop</a>, <a href="https://www.cursor.so">Cursor</a>, <a href="https://codeium.com/windsurf">Windsurf</a>, <a href="https://github.com/openai/openai-agents-python">OpenAI Agents</a> and others to generate speech, clone voices, transcribe audio, and more.
+  This enhanced version is developed and maintained by <strong>Boris Djordjevic</strong> and the <strong>199 Longevity</strong> team.
 </p>
+
+## 🚀 What's New in This Fork
+
+This enhanced version adds critical conversational AI features missing from the original:
+
+- **🎙️ Conversation History**: Retrieve full conversation details including transcripts
+- **📝 Transcript Access**: Get conversation transcripts in multiple formats (plain, timestamps, JSON)
+- **⏳ Real-time Monitoring**: Wait for ongoing conversations to complete and retrieve results
+- **🔍 Conversation Search**: List and filter conversations by agent, status, and more
+- **🎨 Improved Formatting**: Consistent formatting across all list operations
+
+## About
+
+This is an enhanced fork of the official ElevenLabs <a href="https://github.com/modelcontextprotocol">Model Context Protocol (MCP)</a> server that enables interaction with powerful Text to Speech and audio processing APIs. This server allows MCP clients like <a href="https://www.anthropic.com/claude">Claude Desktop</a>, <a href="https://www.cursor.so">Cursor</a>, <a href="https://codeium.com/windsurf">Windsurf</a>, <a href="https://github.com/openai/openai-agents-python">OpenAI Agents</a> and others to generate speech, clone voices, transcribe audio, manage conversational AI agents, and now retrieve conversation history.
 
 ## Quickstart with Claude Desktop
 
@@ -56,6 +73,16 @@ Try asking Claude:
 - "Convert this recording of my voice to sound like a medieval knight"
 - "Create a soundscape of a thunderstorm in a dense jungle with animals reacting to the weather"
 - "Turn this speech into text, identify different speakers, then convert it back using unique voices for each person"
+
+### 🆕 New Conversation Features
+
+With the enhanced conversation tools, you can now:
+
+- "Get the conversation transcript from conversation ID abc123"
+- "List all conversations from my agent and show me the completed ones"
+- "Wait for conversation xyz789 to finish and then give me the full transcript"
+- "Show me all conversations in JSON format with timestamps"
+- "Get the conversation history including analysis data"
 
 ## Optional features
 
@@ -122,5 +149,20 @@ which uvx
 
 Once you obtain the absolute path (e.g., `/usr/local/bin/uvx`), update your configuration to use that path (e.g., `"command": "/usr/local/bin/uvx"`). This ensures that the correct executable is referenced.
 
+## Credits
 
+### Enhanced Fork
+- **Boris Djordjevic** - Lead Developer
+- **199 Longevity Team** - Development and Testing
 
+### Original ElevenLabs MCP Server
+- **Jacek Duszenko** - jacek@elevenlabs.io
+- **Paul Asjes** - paul.asjes@elevenlabs.io
+- **Louis Jordan** - louis@elevenlabs.io
+- **Luke Harries** - luke@elevenlabs.io
+
+This enhanced fork builds upon the excellent foundation created by the ElevenLabs team, adding critical conversational AI features for improved agent interaction and monitoring.
+
+## License
+
+This project maintains the same MIT license as the original ElevenLabs MCP server. See [LICENSE](LICENSE) for details.

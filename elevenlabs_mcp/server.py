@@ -14,6 +14,8 @@ Tools without cost warnings in their description are free to use as they only re
 import httpx
 import os
 import base64
+import asyncio
+import time
 from datetime import datetime
 from io import BytesIO
 from typing import Literal
@@ -548,11 +550,15 @@ def list_agents() -> TextContent:
     if not response.agents:
         return TextContent(type="text", text="No agents found.")
 
-    agent_list = ",".join(
-        f"{agent.name} (ID: {agent.agent_id})" for agent in response.agents
-    )
+    agent_info = []
+    for agent in response.agents:
+        agent_info.append(
+            f"Name: {agent.name}\n"
+            f"ID: {agent.agent_id}"
+        )
 
-    return TextContent(type="text", text=f"Available agents: {agent_list}")
+    formatted_info = "\n\n".join(agent_info)
+    return TextContent(type="text", text=f"Available Agents:\n\n{formatted_info}")
 
 
 @mcp.tool(description="Get details about a specific conversational AI agent")
@@ -715,7 +721,20 @@ def make_outbound_call(
         to_number=to_number,
     )
 
-    return TextContent(type="text", text=f"Outbound call initiated: {response}.")
+    # Format response details
+    call_details = f"""Outbound Call Initiated:
+Agent ID: {agent_id}
+Phone Number ID: {agent_phone_number_id}
+To: {to_number}
+Status: Success"""
+
+    # If response has additional info, include it
+    if hasattr(response, '__dict__'):
+        for key, value in response.__dict__.items():
+            if key not in ['agent_id', 'agent_phone_number_id', 'to_number']:
+                call_details += f"\n{key.replace('_', ' ').title()}: {value}"
+
+    return TextContent(type="text", text=call_details)
 
 
 @mcp.tool(
@@ -824,6 +843,249 @@ def play_audio(input_file_path: str) -> TextContent:
     file_path = handle_input_file(input_file_path)
     play(open(file_path, "rb").read(), use_ffmpeg=False)
     return TextContent(type="text", text=f"Successfully played audio file: {file_path}")
+
+
+@mcp.tool(
+    description="""Get conversation details including full transcript.
+    
+    ⚠️ COST WARNING: This tool makes API calls which may incur costs.
+    
+    Args:
+        conversation_id: The ID of the conversation to retrieve
+        wait_for_completion: If True, wait for conversation to complete before returning (max 5 minutes)
+        include_analysis: Include conversation analysis data if available
+    
+    Returns:
+        Conversation details including transcript, status, metadata, and analysis
+    """
+)
+async def get_conversation(
+    conversation_id: str,
+    wait_for_completion: bool = False,
+    include_analysis: bool = True
+) -> TextContent:
+    """Get conversation details with optional waiting for completion."""
+    max_attempts = 60 if wait_for_completion else 1  # 5 minutes max wait
+    attempt = 0
+    
+    while attempt < max_attempts:
+        try:
+            response = custom_client.get(
+                f"https://api.elevenlabs.io/v1/convai/conversations/{conversation_id}",
+                headers={"xi-api-key": api_key}
+            )
+            
+            if response.status_code == 404:
+                make_error(f"Conversation with ID {conversation_id} not found")
+            elif response.status_code == 403:
+                make_error(f"No access to conversation {conversation_id}")
+            elif response.status_code != 200:
+                make_error(f"API error: {response.status_code} - {response.text}")
+            
+            data = response.json()
+            
+            # If waiting for completion and not done yet
+            if wait_for_completion and data.get("status") not in ["done", "failed"]:
+                attempt += 1
+                if attempt < max_attempts:
+                    await asyncio.sleep(5)  # Wait 5 seconds between attempts
+                    continue
+            
+            # Format the response
+            status = data.get("status", "unknown")
+            agent_id = data.get("agent_id", "N/A")
+            
+            # Format transcript
+            transcript_data = data.get("transcript", [])
+            if transcript_data:
+                transcript_lines = []
+                for entry in transcript_data:
+                    speaker = entry.get("speaker", "Unknown")
+                    text = entry.get("text", "")
+                    timestamp = entry.get("timestamp", "")
+                    if timestamp:
+                        transcript_lines.append(f"[{timestamp}] {speaker}: {text}")
+                    else:
+                        transcript_lines.append(f"{speaker}: {text}")
+                transcript = "\n".join(transcript_lines)
+            else:
+                transcript = "No transcript available"
+            
+            # Build response text
+            response_text = f"""Conversation Details:
+ID: {conversation_id}
+Status: {status}
+Agent ID: {agent_id}
+
+Transcript:
+{transcript}"""
+            
+            # Add metadata if available
+            metadata = data.get("metadata", {})
+            if metadata:
+                duration = metadata.get("duration_seconds", "N/A")
+                started_at = metadata.get("started_at", "N/A")
+                response_text += f"\n\nMetadata:\nDuration: {duration} seconds\nStarted: {started_at}"
+            
+            # Add analysis if requested and available
+            if include_analysis and data.get("analysis"):
+                analysis = data.get("analysis", {})
+                response_text += f"\n\nAnalysis:\n{analysis}"
+            
+            return TextContent(type="text", text=response_text)
+            
+        except Exception as e:
+            if attempt == 0:  # Only error on first attempt if not waiting
+                make_error(f"Failed to fetch conversation: {str(e)}")
+            attempt += 1
+            if attempt < max_attempts:
+                await asyncio.sleep(5)
+    
+    # If we get here, we timed out waiting
+    return TextContent(
+        type="text", 
+        text=f"Conversation {conversation_id} did not complete within 5 minutes. Current status: {status}"
+    )
+
+
+@mcp.tool(
+    description="""List conversations with optional filtering.
+    
+    Args:
+        agent_id: Filter by specific agent ID
+        status: Filter by status (initiated, in-progress, processing, done, failed)
+        limit: Number of conversations to return (default: 10, max: 100)
+        offset: Pagination offset (default: 0)
+    
+    Returns:
+        List of conversations with basic details
+    """
+)
+def list_conversations(
+    agent_id: str | None = None,
+    status: str | None = None,
+    limit: int = 10,
+    offset: int = 0
+) -> TextContent:
+    """List conversations with filtering options."""
+    if limit > 100:
+        limit = 100
+    
+    # Build query parameters
+    params = {
+        "limit": limit,
+        "offset": offset
+    }
+    if agent_id:
+        params["agent_id"] = agent_id
+    if status:
+        params["status"] = status
+    
+    try:
+        response = custom_client.get(
+            "https://api.elevenlabs.io/v1/convai/conversations",
+            headers={"xi-api-key": api_key},
+            params=params
+        )
+        
+        if response.status_code != 200:
+            make_error(f"API error: {response.status_code} - {response.text}")
+        
+        data = response.json()
+        conversations = data.get("conversations", [])
+        
+        if not conversations:
+            return TextContent(type="text", text="No conversations found.")
+        
+        # Format conversation list
+        conv_list = []
+        for conv in conversations:
+            conv_id = conv.get("conversation_id", "N/A")
+            conv_status = conv.get("status", "unknown")
+            conv_agent = conv.get("agent_id", "N/A")
+            conv_started = conv.get("metadata", {}).get("started_at", "N/A")
+            
+            conv_info = f"""Conversation ID: {conv_id}
+Status: {conv_status}
+Agent ID: {conv_agent}
+Started: {conv_started}"""
+            
+            conv_list.append(conv_info)
+        
+        formatted_list = "\n\n".join(conv_list)
+        total = data.get("total", len(conversations))
+        
+        return TextContent(
+            type="text", 
+            text=f"Conversations (showing {len(conversations)} of {total}):\n\n{formatted_list}"
+        )
+        
+    except Exception as e:
+        make_error(f"Failed to list conversations: {str(e)}")
+
+
+@mcp.tool(
+    description="""Get just the transcript from a conversation.
+    
+    ⚠️ COST WARNING: This tool makes API calls which may incur costs.
+    
+    Args:
+        conversation_id: The ID of the conversation
+        format: Format for the transcript ('plain', 'timestamps', 'json')
+    
+    Returns:
+        The conversation transcript in the requested format
+    """
+)
+async def get_conversation_transcript(
+    conversation_id: str,
+    format: Literal["plain", "timestamps", "json"] = "plain"
+) -> TextContent:
+    """Get just the transcript from a conversation."""
+    try:
+        response = custom_client.get(
+            f"https://api.elevenlabs.io/v1/convai/conversations/{conversation_id}",
+            headers={"xi-api-key": api_key}
+        )
+        
+        if response.status_code == 404:
+            make_error(f"Conversation with ID {conversation_id} not found")
+        elif response.status_code != 200:
+            make_error(f"API error: {response.status_code} - {response.text}")
+        
+        data = response.json()
+        transcript_data = data.get("transcript", [])
+        
+        if not transcript_data:
+            return TextContent(type="text", text="No transcript available for this conversation.")
+        
+        if format == "json":
+            # Return raw JSON transcript
+            import json
+            return TextContent(type="text", text=json.dumps(transcript_data, indent=2))
+        elif format == "timestamps":
+            # Include timestamps
+            lines = []
+            for entry in transcript_data:
+                speaker = entry.get("speaker", "Unknown")
+                text = entry.get("text", "")
+                timestamp = entry.get("timestamp", "")
+                if timestamp:
+                    lines.append(f"[{timestamp}] {speaker}: {text}")
+                else:
+                    lines.append(f"{speaker}: {text}")
+            return TextContent(type="text", text="\n".join(lines))
+        else:  # plain
+            # Just speaker and text
+            lines = []
+            for entry in transcript_data:
+                speaker = entry.get("speaker", "Unknown")
+                text = entry.get("text", "")
+                lines.append(f"{speaker}: {text}")
+            return TextContent(type="text", text="\n".join(lines))
+            
+    except Exception as e:
+        make_error(f"Failed to fetch transcript: {str(e)}")
 
 
 def main():
