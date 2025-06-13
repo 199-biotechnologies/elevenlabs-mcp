@@ -43,7 +43,7 @@ This is an enhanced fork of the official ElevenLabs <a href="https://github.com/
   "mcpServers": {
     "ElevenLabs": {
       "command": "npx",
-      "args": ["@199-biotechnologies/elevenlabs-mcp-enhanced"],
+      "args": ["elevenlabs-mcp-enhanced"],
       "env": {
         "ELEVENLABS_API_KEY": "<insert-your-api-key-here>"
       }
@@ -81,7 +81,7 @@ If you're using Windows, you will have to enable "Developer Mode" in Claude Desk
 ### Using npm/npx:
 For other clients like Cursor and Windsurf, you can run the server directly:
 ```bash
-npx @199-biotechnologies/elevenlabs-mcp-enhanced --api-key YOUR_API_KEY
+npx elevenlabs-mcp-enhanced --api-key YOUR_API_KEY
 ```
 
 ### Using Python:

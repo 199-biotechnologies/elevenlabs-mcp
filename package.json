@@ -1,5 +1,5 @@
 {
-  "name": "@199-biotechnologies/elevenlabs-mcp-enhanced",
+  "name": "elevenlabs-mcp-enhanced",
   "version": "0.5.0",
   "description": "Enhanced ElevenLabs MCP Server with conversation history features",
   "main": "index.js",
