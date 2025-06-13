@@ -2,10 +2,10 @@
 
 <div class="title-block" style="text-align: center;" align="center">
 
+  [![npm version](https://img.shields.io/npm/v/elevenlabs-mcp-enhanced.svg?style=for-the-badge&logo=npm&labelColor=000)](https://www.npmjs.com/package/elevenlabs-mcp-enhanced)
+  [![npm downloads](https://img.shields.io/npm/dm/elevenlabs-mcp-enhanced.svg?style=for-the-badge&logo=npm&labelColor=000)](https://www.npmjs.com/package/elevenlabs-mcp-enhanced)
   [![Discord Community](https://img.shields.io/badge/discord-@elevenlabs-000000.svg?style=for-the-badge&logo=discord&labelColor=000)](https://discord.gg/elevenlabs)
-  [![Twitter](https://img.shields.io/badge/Twitter-@elevenlabsio-000000.svg?style=for-the-badge&logo=twitter&labelColor=000)](https://x.com/ElevenLabsDevs)
-  [![PyPI](https://img.shields.io/badge/PyPI-elevenlabs--mcp-000000.svg?style=for-the-badge&logo=pypi&labelColor=000)](https://pypi.org/project/elevenlabs-mcp)
-  [![Tests](https://img.shields.io/badge/tests-passing-000000.svg?style=for-the-badge&logo=github&labelColor=000)](https://github.com/elevenlabs/elevenlabs-mcp-server/actions/workflows/test.yml)
+  [![License](https://img.shields.io/badge/license-MIT-000000.svg?style=for-the-badge&logo=opensource&labelColor=000)](LICENSE)
 
 </div>
 
@@ -16,6 +16,16 @@
 <p align="center">
   This enhanced version is developed and maintained by <strong>Boris Djordjevic</strong> and the <strong>199 Longevity</strong> team.
 </p>
+
+## 📑 Table of Contents
+
+- [🚀 What's New](#-whats-new-in-this-fork)
+- [🚀 Quick Install](#-quick-install)
+- [📋 Requirements](#-requirements)
+- [⚙️ Setup Guide](#quickstart-with-claude-desktop)
+- [💡 Example Usage](#example-usage)
+- [🛠️ Development](#contributing)
+- [👥 Credits](#credits)
 
 ## 🚀 What's New in This Fork
 
@@ -30,6 +40,40 @@ This enhanced version adds critical conversational AI features missing from the 
 ## About
 
 This is an enhanced fork of the official ElevenLabs <a href="https://github.com/modelcontextprotocol">Model Context Protocol (MCP)</a> server that enables interaction with powerful Text to Speech and audio processing APIs. This server allows MCP clients like <a href="https://www.anthropic.com/claude">Claude Desktop</a>, <a href="https://www.cursor.so">Cursor</a>, <a href="https://codeium.com/windsurf">Windsurf</a>, <a href="https://github.com/openai/openai-agents-python">OpenAI Agents</a> and others to generate speech, clone voices, transcribe audio, manage conversational AI agents, and now retrieve conversation history.
+
+## 🚀 Quick Install
+
+### Zero Install (Recommended)
+
+**No installation required!** Just use npx:
+
+```bash
+npx elevenlabs-mcp-enhanced --api-key YOUR_API_KEY
+```
+
+### Global Install
+
+Install once, use everywhere:
+
+```bash
+npm install -g elevenlabs-mcp-enhanced
+elevenlabs-mcp-enhanced --api-key YOUR_API_KEY
+```
+
+### Environment Variable
+
+Set your API key once:
+
+```bash
+export ELEVENLABS_API_KEY="your-api-key"
+npx elevenlabs-mcp-enhanced
+```
+
+## 📋 Requirements
+
+- **Node.js 16+** (for npm/npx)
+- **Python 3.11+** (automatically managed by the npm package)
+- **ElevenLabs API Key** - Get one at [elevenlabs.io](https://elevenlabs.io/app/settings/api-keys)
 
 ## Quickstart with Claude Desktop
 
@@ -54,25 +98,29 @@ This is an enhanced fork of the official ElevenLabs <a href="https://github.com/
 
 That's it! No installation needed - npx will automatically download and run the server.
 
-### Option 2: Using Python and uv
+### Option 2: Using Python (Original method)
+
+If you prefer the original Python installation:
 
 1. Get your API key from [ElevenLabs](https://elevenlabs.io/app/settings/api-keys).
-2. Install `uv` (Python package manager), install with `curl -LsSf https://astral.sh/uv/install.sh | sh` or see the `uv` [repo](https://github.com/astral-sh/uv) for additional install methods.
-3. Go to Claude > Settings > Developer > Edit Config > claude_desktop_config.json to include the following:
-
-```json
-{
-  "mcpServers": {
-    "ElevenLabs": {
-      "command": "uvx",
-      "args": ["elevenlabs-mcp"],
-      "env": {
-        "ELEVENLABS_API_KEY": "<insert-your-api-key-here>"
-      }
-    }
-  }
-}
-```
+2. Install from GitHub:
+   ```bash
+   pip install git+https://github.com/199-biotechnologies/elevenlabs-mcp-enhanced.git
+   ```
+3. Configure Claude Desktop with:
+   ```json
+   {
+     "mcpServers": {
+       "ElevenLabs": {
+         "command": "python",
+         "args": ["-m", "elevenlabs_mcp"],
+         "env": {
+           "ELEVENLABS_API_KEY": "<insert-your-api-key-here>"
+         }
+       }
+     }
+   }
+   ```
 
 If you're using Windows, you will have to enable "Developer Mode" in Claude Desktop to use the MCP server. Click "Help" in the hamburger menu at the top left and select "Enable Developer Mode".
 
