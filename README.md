@@ -31,6 +31,12 @@
 
 This enhanced version adds critical conversational AI features missing from the original:
 
+### 🤖 AI-Friendly Improvements (NEW!)
+- **🎯 Smart Voice Defaults**: `search_voices()` now returns common working voices instantly
+- **📚 Educational Error Messages**: Errors guide AI agents to success with examples
+- **🔧 Fixed v3 Proxy**: `text_to_dialogue` now properly uses v3 proxy (no more 403 errors!)
+- **💡 Clear Tool Guidance**: No more confusion about single vs multi-speaker tools
+
 ### 🆕 ElevenLabs v3 Model Support (Alpha)
 - **🎭 Enhanced Expressiveness**: Use the new v3 model with `model="v3"` parameter
 - **🎤 Audio Tags**: Add emotions and sound effects like `[thoughtful]`, `[crying]`, `[laughing]`, `[piano]`
