@@ -1227,10 +1227,19 @@ async def get_conversation_transcript(
     
     🎭 AUDIO TAGS: You can include tags like [thoughtful], [crying], [laughing], [piano], [footsteps], etc.
     
+    Example usage:
+        inputs = [
+            {"text": "[singing] I like to move it move it.", "voice_name": "James"},
+            {"text": "[crying] Oh please no!", "voice_name": "Jane"},
+            {"text": "[angry] Stop being dramatic!", "voice_name": "Mark"}
+        ]
+    
     Args:
-        inputs: List of dialogue turns, each with text and voice_id/voice_name
+        inputs: List of dialogue turns, each dict must have:
+            - text: The dialogue text (can include v3 audio tags)
+            - voice_id OR voice_name: The voice to use
         output_directory: Directory where the audio file should be saved (defaults to $HOME/Desktop)
-        stability: Stability of the generated audio (0-1, default 0.5)
+        stability: Must be exactly 0.0 (Creative), 0.5 (Natural), or 1.0 (Robust)
         similarity_boost: Similarity boost of the generated audio (0-1, default 0.75)
         
     Returns:
@@ -1244,9 +1253,23 @@ def text_to_dialogue(
     similarity_boost: float = 0.75,
 ) -> TextContent:
     try:
+        # Validate v3-specific parameters
+        if stability not in [0.0, 0.5, 1.0]:
+            make_error(f"v3 model requires stability to be exactly 0.0 (Creative), 0.5 (Natural), or 1.0 (Robust). Got: {stability}")
+        
+        # Validate inputs
+        if not inputs or not isinstance(inputs, list):
+            make_error("inputs must be a non-empty list of dialogue turns")
+        
         # Process inputs to get voice IDs
         processed_inputs = []
-        for input_item in inputs:
+        for i, input_item in enumerate(inputs):
+            if not isinstance(input_item, dict):
+                make_error(f"Input {i} must be a dict with 'text' and 'voice_name'/'voice_id'")
+            
+            if "text" not in input_item:
+                make_error(f"Input {i} missing required 'text' field")
+            
             if "voice_name" in input_item and "voice_id" not in input_item:
                 # Look up voice by name
                 voices = client.voices.get_all()
@@ -1257,7 +1280,7 @@ def text_to_dialogue(
             else:
                 voice_id = input_item.get("voice_id")
                 if not voice_id:
-                    make_error("Each input must have either voice_id or voice_name")
+                    make_error(f"Input {i} must have either voice_id or voice_name")
             
             processed_inputs.append({
                 "text": input_item["text"],
@@ -1284,7 +1307,15 @@ def text_to_dialogue(
             timeout=120.0
         )
         
-        if response.status_code != 200:
+        if response.status_code == 403:
+            make_error("v3 access denied. You need special access from ElevenLabs sales")
+        elif response.status_code == 422:
+            try:
+                error_detail = response.json()
+                make_error(f"Parameter validation error: {error_detail}")
+            except:
+                make_error(f"API error: {response.status_code} - {response.text}")
+        elif response.status_code != 200:
             make_error(f"API error: {response.status_code} - {response.text}")
         
         # Save audio file

@@ -162,10 +162,14 @@ Try asking Claude:
 
 Try the new v3 model with enhanced expressiveness:
 
+**Single Speaker with v3 (text_to_speech):**
 - "Using v3 model, generate speech with: '[thoughtful] The universe is vast... [piano] ...and full of mysteries.'"
-- "Create a dialogue between two characters using v3 with different emotions: happy, sad, and excited"
 - "Use v3 to narrate a story with sound effects like [footsteps], [door creaking], and [thunder]"
-- "Enhance my dialogue text with appropriate audio tags for v3 generation"
+
+**Multi-Speaker Dialogue (text_to_dialogue):**
+- "Create a dialogue where James says '[excited] I found treasure!' and Jane replies '[skeptical] Really? Where?'"
+- "Generate a conversation between three characters with different emotions using v3"
+- Example format: `inputs = [{"text": "[happy] Hello!", "voice_name": "James"}, {"text": "[sad] Goodbye...", "voice_name": "Jane"}]`
 
 **⚠️ Important v3 Requirements:**
 - Stability must be exactly: 0.0 (Creative), 0.5 (Natural), or 1.0 (Robust)
