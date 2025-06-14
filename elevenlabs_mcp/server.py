@@ -1268,10 +1268,10 @@ def enhance_dialogue(
 
 
 @mcp.tool(
-    description="""Get concise list of ElevenLabs v3 audio tags.
+    description="""Fetch list of ElevenLabs v3 audio tags. Use this when users ask about tags, v3 tags, audio tags, or how to use v3.
     
     Returns a quick reference of available tags for emotions, sounds, and effects.
-    Automatically called when users mention "tags" in their v3 requests.
+    Keywords that trigger this tool: tags, v3 tags, audio tags, emotions, sound effects, v3 guide
     
     Note: This list is not exhaustive - experiment with variations!
     """
