@@ -1503,39 +1503,39 @@ inputs = [
         for chunk_idx, chunk in enumerate(chunks):
             # Check if v3 proxy is enabled
             if v3_proxy_enabled:
-            # Ensure proxy is running
-            import subprocess
-            import psutil
-            import sys
+                # Ensure proxy is running
+                import subprocess
+                import psutil
+                import sys
+                
+                # Check if proxy is already running
+                proxy_running = False
+                for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                    try:
+                        if 'v3_proxy.py' in ' '.join(proc.info['cmdline'] or []):
+                            proxy_running = True
+                            break
+                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                        continue
+                
+                if not proxy_running:
+                    # Start proxy in background
+                    proxy_path = os.path.join(os.path.dirname(__file__), 'v3_proxy.py')
+                    subprocess.Popen([sys.executable, proxy_path], 
+                                   stdout=subprocess.DEVNULL, 
+                                   stderr=subprocess.DEVNULL)
+                    # Give it a moment to start
+                    import time
+                    time.sleep(2)
+                
+                # Use proxy endpoint
+                endpoint = f"{v3_proxy_url}/v1/text-to-dialogue/stream"
+            else:
+                # Use direct API endpoint (requires v3 access)
+                endpoint = "https://api.elevenlabs.io/v1/text-to-dialogue/stream"
             
-            # Check if proxy is already running
-            proxy_running = False
-            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
-                try:
-                    if 'v3_proxy.py' in ' '.join(proc.info['cmdline'] or []):
-                        proxy_running = True
-                        break
-                except (psutil.NoSuchProcess, psutil.AccessDenied):
-                    continue
-            
-            if not proxy_running:
-                # Start proxy in background
-                proxy_path = os.path.join(os.path.dirname(__file__), 'v3_proxy.py')
-                subprocess.Popen([sys.executable, proxy_path], 
-                               stdout=subprocess.DEVNULL, 
-                               stderr=subprocess.DEVNULL)
-                # Give it a moment to start
-                import time
-                time.sleep(2)
-            
-            # Use proxy endpoint
-            endpoint = f"{v3_proxy_url}/v1/text-to-dialogue/stream"
-        else:
-            # Use direct API endpoint (requires v3 access)
-            endpoint = "https://api.elevenlabs.io/v1/text-to-dialogue/stream"
-        
-        # Make API call to text-to-dialogue endpoint
-        response = httpx.post(
+            # Make API call to text-to-dialogue endpoint
+            response = httpx.post(
             endpoint,
             json={
                 "inputs": chunk,
@@ -1555,19 +1555,19 @@ inputs = [
                 "Accept": "audio/mpeg"
             },
             timeout=120.0
-        )
-        
-        if response.status_code == 403:
-            make_error("v3 access denied. You need special access from ElevenLabs sales")
-        elif response.status_code == 422:
-            try:
-                error_detail = response.json()
-                make_error(f"Parameter validation error: {error_detail}")
-            except:
+            )
+            
+            if response.status_code == 403:
+                make_error("v3 access denied. You need special access from ElevenLabs sales")
+            elif response.status_code == 422:
+                try:
+                    error_detail = response.json()
+                    make_error(f"Parameter validation error: {error_detail}")
+                except:
+                    make_error(f"API error: {response.status_code} - {response.text}")
+            elif response.status_code != 200:
                 make_error(f"API error: {response.status_code} - {response.text}")
-        elif response.status_code != 200:
-            make_error(f"API error: {response.status_code} - {response.text}")
-        
+            
             # Save audio file
             output_path = make_output_path(output_directory, base_path)
             if len(chunks) > 1:
