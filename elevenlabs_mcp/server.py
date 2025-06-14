@@ -60,25 +60,29 @@ mcp = FastMCP("ElevenLabs")
 
 
 @mcp.tool(
-    description="""Convert text to speech with a given voice. 🆕 Now supports ElevenLabs v3 model!
+    description="""🎤 SINGLE SPEAKER Text-to-Speech (Use text_to_dialogue for multiple speakers!)
     
-    🚀 WHEN TO USE THIS TOOL:
-    - Single speaker narration/speech → Use this with model="v2" or "v3"
-    - Multiple speakers conversation → Use text_to_dialogue instead (always v3)
+    ✅ USE THIS WHEN:
+    - ONE person speaking (narration, monologue, single voice)
+    - Need specific voice settings (speed, stability, style)
+    - Want v2 (default), v3 (tags), or flash (fast) models
     
-    📝 QUICK EXAMPLES:
+    ❌ DON'T USE THIS WHEN:
+    - MULTIPLE speakers in conversation → Use text_to_dialogue instead!
+    - You see dialogue format → Use text_to_dialogue instead!
+    
+    📝 EXAMPLES:
     - Basic: text_to_speech("Hello world")
-    - With v3 tags: text_to_speech("[happy] Hello! [laughs]", model="v3")
-    - Fast generation: text_to_speech("Quick test", model="flash")
+    - v3 with tags: text_to_speech("[thoughtful] The universe is vast... [piano]", model="v3") 
+    - Fast: text_to_speech("Quick test", model="flash")
+    - No voice? It works! text_to_speech("Hello") uses default voice
 
     ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs.
     
-    🎭 v3 AUDIO TAGS: When using model='v3', common tags include:
-    [happy], [sad], [whispering], [shouting], [laughing], [crying], [sighs], 
-    [pause], [footsteps], [door opening], [coughing], [breathing heavily]
+    🎭 v3 TAGS: [happy], [sad], [laughing], [whispering], [shouting], [pause], [piano], etc.
+    💡 Call fetch_v3_tags() for full list!
     
-    💡 For full tag list: call fetch_v3_tags()
-    💡 For multi-speaker: use text_to_dialogue() instead
+    🚨 MULTIPLE SPEAKERS? Stop! Use text_to_dialogue() instead!
 
      Args:
         text (str): The text to convert to speech. Can include audio tags when using v3 model.
@@ -141,14 +145,47 @@ def text_to_speech(
 
     voice = None
     if voice_id is not None:
-        voice = client.voices.get(voice_id=voice_id)
+        try:
+            voice = client.voices.get(voice_id=voice_id)
+        except:
+            make_error(f"""Voice ID '{voice_id}' not found!
+            
+💡 TIP: Use search_voices() first to get valid voice IDs.
+Example: search_voices() → Returns list with IDs → Use the ID in text_to_speech
+            
+Common voice IDs:
+- Brian: nPczCjzI2devNBz1zQrb
+- Rachel: 21m00Tcm4TlvDq8ikWAM
+- Adam: pNInz6obpgDQGcFmaJgB""")
     elif voice_name is not None:
         voices = client.voices.search(search=voice_name)
         if len(voices.voices) == 0:
-            make_error("No voices found with that name.")
+            # Provide helpful suggestions
+            make_error(f"""No voices found with name '{voice_name}'!
+            
+🎯 QUICK FIX: Try these working voice names:
+- "Brian" - deep American male
+- "Rachel" - conversational American female  
+- "Adam" - versatile male voice
+- "James" - professional narrator (v3-optimized)
+- "Jane" - friendly female (v3-optimized)
+
+💡 PRO TIP: Use search_voices() first to see all available voices!
+Example: search_voices("female") → Returns female voices → Pick one""")
         voice = next((v for v in voices.voices if v.name == voice_name), None)
         if voice is None:
-            make_error(f"Voice with name: {voice_name} does not exist.")
+            # Check for partial matches
+            partial_matches = [v.name for v in voices.voices if voice_name.lower() in v.name.lower()]
+            if partial_matches:
+                make_error(f"""Exact match for '{voice_name}' not found!
+                
+Did you mean one of these? {', '.join(partial_matches[:5])}
+
+💡 TIP: Voice names are case-sensitive. Use exact names from search_voices()""")
+            else:
+                make_error(f"""Voice '{voice_name}' does not exist!
+                
+🎯 Try search_voices() without arguments to get common working voices instantly!""")
 
     voice_id = voice.voice_id if voice else DEFAULT_VOICE_ID
 
@@ -390,23 +427,26 @@ def text_to_sound_effects(
 
 @mcp.tool(
     description="""
-    Search for voices in your ElevenLabs library.
+    🔊 Search for voices in your ElevenLabs library - AI-FRIENDLY!
     
-    💡 PRO TIP: Search for "v3" to get v3-optimized voices at the top!
+    ⚡ INSTANT SUCCESS: No search term? Returns common working voices immediately!
     
-    🎯 COMMON SEARCHES:
-    - "v3" → Returns v3-optimized voices first (James, Jane, Sarah, etc.)
+    🎯 SMART DEFAULTS:
+    - Empty search → Returns popular voices (James, Jane, Sarah, etc.)
+    - "v3" → Returns v3-optimized voices first
+    - "female" → Returns female voices
+    - "male" → Returns male voices
     - "british" → Voices with British accents
-    - "young" → Younger sounding voices
-    - "professional" → Professional narration voices
+    
+    💡 AI TIP: Start with no search term to get working voices instantly!
 
     Args:
-        search: Search term (searches name, description, labels, category)
+        search: Optional search term. Leave empty for common voices!
         sort: Sort by "name" or "created_at_unix"
         sort_direction: "asc" or "desc"
 
     Returns:
-        List of matching voices (v3-optimized voices appear first when searching "v3")
+        Ready-to-use voice list with names AND IDs for easy copying
     """
 )
 def search_voices(
@@ -414,6 +454,42 @@ def search_voices(
     sort: Literal["created_at_unix", "name"] = "name",
     sort_direction: Literal["asc", "desc"] = "desc",
 ) -> list[McpVoice]:
+    # Common working voices that AI should use by default
+    common_voices = {
+        "James": "professional male narrator, v3-optimized",
+        "Jane": "friendly female narrator, v3-optimized", 
+        "Sarah": "warm female voice, v3-optimized",
+        "Mark": "conversational male, v3-optimized",
+        "Adam": "versatile male voice",
+        "Antoni": "well-rounded male voice",
+        "Rachel": "conversational American female",
+        "Brian": "deep American male voice"
+    }
+    
+    # If no search term, return common voices with helpful info
+    if not search:
+        # Get all voices first
+        all_voices_response = client.voices.get_all()
+        all_voices_dict = {v.name: v for v in all_voices_response.voices}
+        
+        # Build list of common voices that actually exist
+        result_voices = []
+        for voice_name, description in common_voices.items():
+            if voice_name in all_voices_dict:
+                voice = all_voices_dict[voice_name]
+                # Add helpful description to category
+                enhanced_voice = McpVoice(
+                    id=voice.voice_id,
+                    name=voice.name,
+                    category=f"{voice.category or 'general'} - {description}"
+                )
+                result_voices.append(enhanced_voice)
+        
+        # If we found common voices, return them
+        if result_voices:
+            return result_voices
+    
+    # Otherwise do normal search
     response = client.voices.search(
         search=search, sort=sort, sort_direction=sort_direction
     )
@@ -1307,7 +1383,23 @@ def text_to_dialogue(
                 voices = client.voices.get_all()
                 voice = next((v for v in voices.voices if v.name == input_item["voice_name"]), None)
                 if not voice:
-                    make_error(f"Voice with name '{input_item['voice_name']}' not found")
+                    # Get list of available voice names for better error message
+                    available_voices = [v.name for v in voices.voices]
+                    v3_voices = ["James", "Jane", "Sarah", "Mark", "Juniper", "Hope"]
+                    available_v3 = [v for v in v3_voices if v in available_voices]
+                    
+                    make_error(f"""Voice '{input_item['voice_name']}' not found for dialogue!
+                    
+🎯 QUICK FIX - Use these v3-optimized voices:
+{chr(10).join(f'- "{v}"' for v in available_v3[:6])}
+
+📝 EXAMPLE FIX:
+inputs = [
+    {{"text": "[excited] Hello!", "voice_name": "James"}},
+    {{"text": "[happy] Hi there!", "voice_name": "Jane"}}
+]
+
+💡 PRO TIP: Call search_voices("v3") to see all v3-optimized voices!""")
                 voice_id = voice.voice_id
             else:
                 voice_id = input_item.get("voice_id")
@@ -1319,9 +1411,42 @@ def text_to_dialogue(
                 "voice_id": voice_id
             })
         
+        # Check if v3 proxy is enabled
+        if v3_proxy_enabled:
+            # Ensure proxy is running
+            import subprocess
+            import psutil
+            import sys
+            
+            # Check if proxy is already running
+            proxy_running = False
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                try:
+                    if 'v3_proxy.py' in ' '.join(proc.info['cmdline'] or []):
+                        proxy_running = True
+                        break
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+            
+            if not proxy_running:
+                # Start proxy in background
+                proxy_path = os.path.join(os.path.dirname(__file__), 'v3_proxy.py')
+                subprocess.Popen([sys.executable, proxy_path], 
+                               stdout=subprocess.DEVNULL, 
+                               stderr=subprocess.DEVNULL)
+                # Give it a moment to start
+                import time
+                time.sleep(2)
+            
+            # Use proxy endpoint
+            endpoint = f"{v3_proxy_url}/v1/text-to-dialogue/stream"
+        else:
+            # Use direct API endpoint (requires v3 access)
+            endpoint = "https://api.elevenlabs.io/v1/text-to-dialogue/stream"
+        
         # Make API call to text-to-dialogue endpoint
         response = httpx.post(
-            "https://api.elevenlabs.io/v1/text-to-dialogue/stream",
+            endpoint,
             json={
                 "inputs": processed_inputs,
                 "model_id": "eleven_v3",
@@ -1333,6 +1458,9 @@ def text_to_dialogue(
             },
             headers={
                 "xi-api-key": api_key,
+                "Content-Type": "application/json",
+                "Accept": "audio/mpeg"
+            } if not v3_proxy_enabled else {
                 "Content-Type": "application/json",
                 "Accept": "audio/mpeg"
             },
