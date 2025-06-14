@@ -36,6 +36,7 @@ This enhanced version adds critical conversational AI features missing from the 
 - **🎤 Audio Tags**: Add emotions and sound effects like `[thoughtful]`, `[crying]`, `[laughing]`, `[piano]`
 - **👥 Multi-Speaker Dialogue**: Generate natural conversations between multiple speakers
 - **✨ Dialogue Enhancement**: Automatically enhance your dialogue with proper formatting and tags
+- **🔐 v3 Proxy Support**: Use v3 even without API access by enabling the built-in proxy (see v3 Proxy section)
 
 ### 🎙️ Conversational AI Features
 - **Conversation History**: Retrieve full conversation details including transcripts
@@ -181,6 +182,45 @@ With the enhanced conversation tools, you can now:
 ## Optional features
 
 You can add the `ELEVENLABS_MCP_BASE_PATH` environment variable to the `claude_desktop_config.json` to specify the base path MCP server should look for and output files specified with relative paths.
+
+### 🔐 v3 Proxy (For users without v3 API access)
+
+The v3 model is currently in alpha and requires special access. If you have access through the ElevenLabs website but not through the API, you can use the built-in proxy:
+
+1. **Enable the proxy** by adding these environment variables to your MCP config:
+
+```json
+{
+  "mcpServers": {
+    "ElevenLabs": {
+      "command": "npx",
+      "args": ["elevenlabs-mcp-enhanced@latest"],
+      "env": {
+        "ELEVENLABS_API_KEY": "your_api_key",
+        "ELEVENLABS_EMAIL": "your_email@example.com",
+        "ELEVENLABS_PASSWORD": "your_password",
+        "ELEVENLABS_V3_PROXY": "true"
+      }
+    }
+  }
+}
+```
+
+2. **How it works**:
+   - The proxy automatically starts when you use `model="v3"`
+   - It authenticates with your ElevenLabs account using Firebase
+   - Maintains session tokens and refreshes them automatically
+   - Forwards v3 requests with proper authentication
+
+3. **Security notes**:
+   - Credentials are only used locally for authentication
+   - The proxy runs on localhost (port 8123 by default)
+   - Tokens are refreshed automatically before expiry
+
+4. **Limitations**:
+   - Requires valid ElevenLabs account with v3 web access
+   - Proxy must authenticate through Firebase (same as web login)
+   - Not needed once ElevenLabs releases public v3 API access
 
 ## Contributing
 

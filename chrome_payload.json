@@ -1,0 +1,14 @@
+{
+  "inputs": [
+    {
+      "text": "[thoughtful] The Unified Theory of Biological Relativity.\n[crying] The Unified Theory of Biological Relativity proposes that life progresses through three entropic states: [laughing] Oh yes\!",
+      "voice_id": "5l5f8iK3YPeGga21rQIX"
+    }
+  ],
+  "model_id": "eleven_v3",
+  "settings": {
+    "quality": null,
+    "similarity_boost": 0.75,
+    "stability": 0.5
+  }
+}

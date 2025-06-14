@@ -41,6 +41,10 @@ api_key = os.getenv("ELEVENLABS_API_KEY")
 base_path = os.getenv("ELEVENLABS_MCP_BASE_PATH")
 DEFAULT_VOICE_ID = "cgSgspJ2msm6clMCkdW9"
 
+# v3 proxy configuration
+v3_proxy_enabled = os.getenv("ELEVENLABS_V3_PROXY", "false").lower() == "true"
+v3_proxy_url = f"http://localhost:{os.getenv('V3_PROXY_PORT', '8123')}"
+
 if not api_key:
     raise ValueError("ELEVENLABS_API_KEY environment variable is required")
 
@@ -143,9 +147,41 @@ def text_to_speech(
 
     # v3 model requires the dialogue endpoint, even for single speaker
     if model == "v3":
-        # Use text-to-dialogue endpoint for v3
+        # Check if v3 proxy is enabled for users with web access
+        if v3_proxy_enabled:
+            # Ensure proxy is running
+            import subprocess
+            import psutil
+            import sys
+            
+            # Check if proxy is already running
+            proxy_running = False
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                try:
+                    if 'v3_proxy.py' in ' '.join(proc.info['cmdline'] or []):
+                        proxy_running = True
+                        break
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+            
+            if not proxy_running:
+                # Start proxy in background
+                proxy_path = os.path.join(os.path.dirname(__file__), 'v3_proxy.py')
+                subprocess.Popen([sys.executable, proxy_path], 
+                               stdout=subprocess.DEVNULL, 
+                               stderr=subprocess.DEVNULL)
+                # Give it a moment to start
+                import time
+                time.sleep(2)
+            
+            # Use proxy endpoint
+            endpoint = f"{v3_proxy_url}/v1/text-to-dialogue/stream"
+        else:
+            # Use direct API endpoint (requires v3 access)
+            endpoint = "https://api.elevenlabs.io/v1/text-to-dialogue/stream"
+        
         response = httpx.post(
-            "https://api.elevenlabs.io/v1/text-to-dialogue/stream",
+            endpoint,
             json={
                 "inputs": [{
                     "text": text,
@@ -162,11 +198,16 @@ def text_to_speech(
                 "xi-api-key": api_key,
                 "Content-Type": "application/json",
                 "Accept": "audio/mpeg"
+            } if not v3_proxy_enabled else {
+                "Content-Type": "application/json",
+                "Accept": "audio/mpeg"
             },
             timeout=120.0
         )
         
-        if response.status_code != 200:
+        if response.status_code == 422 and not v3_proxy_enabled:
+            make_error("v3 access denied. You need special access from ElevenLabs sales, or enable v3 proxy with ELEVENLABS_V3_PROXY=true")
+        elif response.status_code != 200:
             make_error(f"v3 API error: {response.status_code} - {response.text}")
         
         audio_bytes = response.content

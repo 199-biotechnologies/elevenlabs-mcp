@@ -1,0 +1,1 @@
+{"detail":{"status":"invalid_authorization_header","message":"authorization header must contain a valid bearer token"}}

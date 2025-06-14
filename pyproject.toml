@@ -37,6 +37,7 @@ dependencies = [
     "fuzzywuzzy==0.18.0",
     "python-Levenshtein>=0.25.0",
     "sounddevice==0.5.1",
+    "psutil>=5.9.0",
     "soundfile==0.13.1",
 ]
 
