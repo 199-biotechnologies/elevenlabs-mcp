@@ -101,3 +101,13 @@ INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/s
 INFO:     127.0.0.1:58927 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 200 OK
 INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 200 OK"
 INFO:     127.0.0.1:64638 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:55155 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:56749 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:57429 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:58940 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 200 OK

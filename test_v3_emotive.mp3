@@ -1,1 +1,0 @@
-{"detail":"422: {\"detail\":[{\"type\":\"json_invalid\",\"loc\":[\"body\",111],\"msg\":\"JSON decode error\",\"input\":{},\"ctx\":{\"error\":\"Invalid \\\\escape\"}}]}"}

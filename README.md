@@ -158,23 +158,44 @@ Try asking Claude:
 - "Create a soundscape of a thunderstorm in a dense jungle with animals reacting to the weather"
 - "Turn this speech into text, identify different speakers, then convert it back using unique voices for each person"
 
-### 🆕 v3 Model Examples
+### 🆕 v3 Model - Quick Start Guide
 
-Try the new v3 model with enhanced expressiveness:
+**🎯 DECISION TREE:**
+1. **Single speaker?** → Use `text_to_speech` with `model="v3"`
+2. **Multiple speakers?** → Use `text_to_dialogue` (automatically v3)
+3. **Need tag examples?** → Call `fetch_v3_tags()` first
 
-**Single Speaker with v3 (text_to_speech):**
-- "Using v3 model, generate speech with: '[thoughtful] The universe is vast... [piano] ...and full of mysteries.'"
-- "Use v3 to narrate a story with sound effects like [footsteps], [door creaking], and [thunder]"
+**📋 RECOMMENDED WORKFLOW FOR AI:**
+```
+1. User: "Create an emotional story with sound effects"
+2. AI: fetch_v3_tags() → Gets list of available tags
+3. AI: search_voices("v3") → Gets v3-optimized voices
+4. AI: text_to_dialogue(...) → Creates the story
+```
 
-**Multi-Speaker Dialogue (text_to_dialogue):**
-- "Create a dialogue where James says '[excited] I found treasure!' and Jane replies '[skeptical] Really? Where?'"
-- "Generate a conversation between three characters with different emotions using v3"
-- Example format: `inputs = [{"text": "[happy] Hello!", "voice_name": "James"}, {"text": "[sad] Goodbye...", "voice_name": "Jane"}]`
+**Single Speaker Examples (text_to_speech):**
+- "Generate: '[thoughtful] The universe is vast... [piano] ...and full of mysteries.'"
+- "Create narration with: '[whispering] Secret message [footsteps] [door creaking]'"
 
-**⚠️ Important v3 Requirements:**
-- Stability must be exactly: 0.0 (Creative), 0.5 (Natural), or 1.0 (Robust)
-- v3 access requires approval from ElevenLabs (or use the proxy below)
-- Use v3-optimized voices for best results (see voice guide)
+**Multi-Speaker Examples (text_to_dialogue - ALWAYS v3):**
+```python
+# Simple conversation
+inputs = [
+    {"text": "How are you?", "voice_name": "James"},
+    {"text": "I'm great!", "voice_name": "Jane"}
+]
+
+# With emotion tags
+inputs = [
+    {"text": "[excited] I found treasure!", "voice_name": "James"},
+    {"text": "[skeptical] Really? [pause] Where?", "voice_name": "Jane"}
+]
+```
+
+**⚠️ v3 Requirements:**
+- Stability: MUST be 0.0, 0.5, or 1.0 (no other values!)
+- Best voices: James, Jane, Sarah, Mark, etc. (search "v3" to find them)
+- Always check fetch_v3_tags() for available audio tags
 
 ### 🆕 New Conversation Features
 

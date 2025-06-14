@@ -1,1 +1,0 @@
-{"detail":[{"type":"json_invalid","loc":["body",79],"msg":"JSON decode error","input":{},"ctx":{"error":"Invalid \\escape"}}]}

@@ -62,15 +62,23 @@ mcp = FastMCP("ElevenLabs")
 @mcp.tool(
     description="""Convert text to speech with a given voice. 🆕 Now supports ElevenLabs v3 model!
     
-    🚀 To use v3: Set model="v3" for enhanced expressiveness and audio tags support
+    🚀 WHEN TO USE THIS TOOL:
+    - Single speaker narration/speech → Use this with model="v2" or "v3"
+    - Multiple speakers conversation → Use text_to_dialogue instead (always v3)
     
-    Directory is optional, if not provided, the output file will be saved to $HOME/Desktop.
-    Only one of voice_id or voice_name can be provided. If none are provided, the default voice will be used.
+    📝 QUICK EXAMPLES:
+    - Basic: text_to_speech("Hello world")
+    - With v3 tags: text_to_speech("[happy] Hello! [laughs]", model="v3")
+    - Fast generation: text_to_speech("Quick test", model="flash")
 
-    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs.
     
-    🎭 AUDIO TAGS (v3 only): When using model='v3', you can include tags like [thoughtful], [crying], [laughs], [piano], etc.
-    Note: v3 uses a special endpoint for enhanced expressiveness even with single speakers.
+    🎭 v3 AUDIO TAGS: When using model='v3', common tags include:
+    [happy], [sad], [whispering], [shouting], [laughing], [crying], [sighs], 
+    [pause], [footsteps], [door opening], [coughing], [breathing heavily]
+    
+    💡 For full tag list: call fetch_v3_tags()
+    💡 For multi-speaker: use text_to_dialogue() instead
 
      Args:
         text (str): The text to convert to speech. Can include audio tags when using v3 model.
@@ -382,16 +390,23 @@ def text_to_sound_effects(
 
 @mcp.tool(
     description="""
-    Search for existing voices, a voice that has already been added to the user's ElevenLabs voice library.
-    Searches in name, description, labels and category.
+    Search for voices in your ElevenLabs library.
+    
+    💡 PRO TIP: Search for "v3" to get v3-optimized voices at the top!
+    
+    🎯 COMMON SEARCHES:
+    - "v3" → Returns v3-optimized voices first (James, Jane, Sarah, etc.)
+    - "british" → Voices with British accents
+    - "young" → Younger sounding voices
+    - "professional" → Professional narration voices
 
     Args:
-        search: Search term to filter voices by. Searches in name, description, labels and category.
-        sort: Which field to sort by. `created_at_unix` might not be available for older voices.
-        sort_direction: Sort order, either ascending or descending.
+        search: Search term (searches name, description, labels, category)
+        sort: Sort by "name" or "created_at_unix"
+        sort_direction: "asc" or "desc"
 
     Returns:
-        List of voices that match the search criteria.
+        List of matching voices (v3-optimized voices appear first when searching "v3")
     """
 )
 def search_voices(
@@ -1219,31 +1234,48 @@ async def get_conversation_transcript(
 
 
 @mcp.tool(
-    description="""🆕 NEW v3 FEATURE: Generate natural dialogue between multiple speakers with enhanced expressiveness!
+    description="""🎭 Multi-Speaker Dialogue with ElevenLabs v3 (ALWAYS USES v3 MODEL)
     
-    This uses the new ElevenLabs v3 model for multi-speaker dialogue generation.
+    ⚡ QUICK START:
+    1. This tool AUTOMATICALLY uses v3 model - all v3 audio tags work!
+    2. For single speaker with v3 tags, use text_to_speech(model="v3") instead
+    3. For full tag list, call fetch_v3_tags() first
     
-    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs.
     
-    🎭 AUDIO TAGS: You can include tags like [thoughtful], [crying], [laughing], [piano], [footsteps], etc.
+    🎯 COMMON TAGS YOU CAN USE:
+    Emotions: [happy], [sad], [angry], [excited], [crying], [laughing], [whispering], [shouting]
+    Actions: [breathing heavily], [sighs], [coughing], [sniffling], [sobbing]
+    Sounds: [footsteps], [door opening], [thunder], [applause], [wind]
+    Voice: [soft], [loud], [fast], [slow], [trembling voice], [voice breaking]
+    Special: [pause], [long pause], [silence]
     
-    Example usage:
-        inputs = [
-            {"text": "[singing] I like to move it move it.", "voice_name": "James"},
-            {"text": "[crying] Oh please no!", "voice_name": "Jane"},
-            {"text": "[angry] Stop being dramatic!", "voice_name": "Mark"}
-        ]
+    📝 EXAMPLE - Simple conversation:
+    inputs = [
+        {"text": "Hey, how are you?", "voice_name": "James"},
+        {"text": "I'm doing great, thanks!", "voice_name": "Jane"}
+    ]
+    
+    📝 EXAMPLE - Emotional scene with tags:
+    inputs = [
+        {"text": "[whispering] Are you there? [footsteps approaching]", "voice_name": "Sarah"},
+        {"text": "[startled] Oh! [nervous laugh] You scared me!", "voice_name": "Mike"},
+        {"text": "[apologetic] Sorry... [pause] I have something to tell you.", "voice_name": "Sarah"}
+    ]
+    
+    💡 PRO TIPS:
+    - Combine tags: "[whispering] [crying] I miss you..."
+    - Environmental sounds work: "[rain falling] [thunder in distance]"
+    - Use pauses for drama: "I... [long pause] I love you."
+    - v3-optimized voices work best (James, Jane, Sarah, etc.)
     
     Args:
         inputs: List of dialogue turns, each dict must have:
-            - text: The dialogue text (can include v3 audio tags)
+            - text: The dialogue text with v3 audio tags
             - voice_id OR voice_name: The voice to use
-        output_directory: Directory where the audio file should be saved (defaults to $HOME/Desktop)
-        stability: Must be exactly 0.0 (Creative), 0.5 (Natural), or 1.0 (Robust)
-        similarity_boost: Similarity boost of the generated audio (0-1, default 0.75)
-        
-    Returns:
-        Path to the generated audio file
+        stability: MUST be 0.0 (Creative), 0.5 (Natural), or 1.0 (Robust)
+        similarity_boost: Voice similarity (0-1, default 0.75)
+        output_directory: Where to save (default $HOME/Desktop)
     """
 )
 def text_to_dialogue(
@@ -1386,12 +1418,21 @@ def enhance_dialogue(
 
 
 @mcp.tool(
-    description="""Fetch list of ElevenLabs v3 audio tags. Use this when users ask about tags, v3 tags, audio tags, or how to use v3.
+    description="""📋 Get list of v3 audio tags - CALL THIS FIRST before using v3!
     
-    Returns a quick reference of available tags for emotions, sounds, and effects.
-    Keywords that trigger this tool: tags, v3 tags, audio tags, emotions, sound effects, v3 guide
+    ⚡ WHEN TO USE:
+    - Before using text_to_speech with model="v3"
+    - Before using text_to_dialogue (which always uses v3)
+    - When user mentions: tags, emotions, sound effects, v3 features
+    - When you need examples of available audio tags
     
-    Note: This list is not exhaustive - experiment with variations!
+    🎯 RETURNS:
+    - Comprehensive list of emotional tags ([happy], [crying], etc.)
+    - Sound effect tags ([footsteps], [thunder], etc.)
+    - Voice modulation tags ([whispering], [shouting], etc.)
+    - Special control tags ([pause], [silence], etc.)
+    
+    💡 TIP: Always call this first to see all available options!
     """
 )
 def fetch_v3_tags() -> TextContent:
