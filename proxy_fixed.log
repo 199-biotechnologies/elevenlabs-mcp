@@ -111,3 +111,69 @@ INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/s
 INFO:     127.0.0.1:57429 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 200 OK
 INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 200 OK"
 INFO:     127.0.0.1:58940 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://securetoken.googleapis.com/v1/token?key=AIzaSyBSsRE_1Os04-bxpd5JTLIniy3UK4OqKys "HTTP/1.1 403 Forbidden"
+ERROR:elevenlabs_mcp.v3_proxy:Token refresh failed: {
+  "error": {
+    "code": 403,
+    "message": "Requests from referer \u003cempty\u003e are blocked.",
+    "status": "PERMISSION_DENIED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "API_KEY_HTTP_REFERRER_BLOCKED",
+        "domain": "googleapis.com",
+        "metadata": {
+          "httpReferrer": "\u003cempty\u003e",
+          "consumer": "projects/265222077342",
+          "service": "securetoken.googleapis.com"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.LocalizedMessage",
+        "locale": "en-US",
+        "message": "Requests from referer \u003cempty\u003e are blocked."
+      }
+    ]
+  }
+}
+
+INFO:httpx:HTTP Request: POST https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBSsRE_1Os04-bxpd5JTLIniy3UK4OqKys "HTTP/1.1 200 OK"
+INFO:elevenlabs_mcp.v3_proxy:Successfully logged in to Firebase
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:60303 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 400 Bad Request"
+ERROR:elevenlabs_mcp.v3_proxy:v3 request failed: 400 - {"detail":{"status":"max_character_limit_exceeded","message":"Request text length (4373) exceeds the maximum text length of 3000 characters. Please use Studio for long form TTS."}}
+ERROR:elevenlabs_mcp.v3_proxy:Proxy error: 400: {"detail":{"status":"max_character_limit_exceeded","message":"Request text length (4373) exceeds the maximum text length of 3000 characters. Please use Studio for long form TTS."}}
+INFO:     127.0.0.1:64268 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64419 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://securetoken.googleapis.com/v1/token?key=AIzaSyBSsRE_1Os04-bxpd5JTLIniy3UK4OqKys "HTTP/1.1 403 Forbidden"
+ERROR:elevenlabs_mcp.v3_proxy:Token refresh failed: {
+  "error": {
+    "code": 403,
+    "message": "Requests from referer \u003cempty\u003e are blocked.",
+    "status": "PERMISSION_DENIED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "API_KEY_HTTP_REFERRER_BLOCKED",
+        "domain": "googleapis.com",
+        "metadata": {
+          "httpReferrer": "\u003cempty\u003e",
+          "service": "securetoken.googleapis.com",
+          "consumer": "projects/265222077342"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.LocalizedMessage",
+        "locale": "en-US",
+        "message": "Requests from referer \u003cempty\u003e are blocked."
+      }
+    ]
+  }
+}
+
+INFO:httpx:HTTP Request: POST https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBSsRE_1Os04-bxpd5JTLIniy3UK4OqKys "HTTP/1.1 200 OK"
+INFO:elevenlabs_mcp.v3_proxy:Successfully logged in to Firebase
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:53501 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 200 OK

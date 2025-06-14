@@ -154,6 +154,9 @@ def text_to_speech(
 Example: search_voices() → Returns list with IDs → Use the ID in text_to_speech
             
 Common voice IDs:
+- James: EkK5I93UQWFDigLMpZcX (v3-optimized)
+- Jane: RILOU7YmBhvwJGDGjNmP (v3-optimized)
+- Mark: 1SM7GgM6IMuvQlz2BwM3 (v3-optimized)
 - Brian: nPczCjzI2devNBz1zQrb
 - Rachel: 21m00Tcm4TlvDq8ikWAM
 - Adam: pNInz6obpgDQGcFmaJgB""")
@@ -163,12 +166,12 @@ Common voice IDs:
             # Provide helpful suggestions
             make_error(f"""No voices found with name '{voice_name}'!
             
-🎯 QUICK FIX: Try these working voice names:
-- "Brian" - deep American male
-- "Rachel" - conversational American female  
-- "Adam" - versatile male voice
-- "James" - professional narrator (v3-optimized)
-- "Jane" - friendly female (v3-optimized)
+🎯 QUICK FIX: Try these working voices:
+- "James" (EkK5I93UQWFDigLMpZcX) - husky & engaging, v3-optimized
+- "Jane" (RILOU7YmBhvwJGDGjNmP) - professional audiobook reader, v3-optimized  
+- "Mark" (1SM7GgM6IMuvQlz2BwM3) - ConvoAI optimized, v3-optimized
+- "Adam" (pNInz6obpgDQGcFmaJgB) - versatile male voice
+- "Rachel" (21m00Tcm4TlvDq8ikWAM) - conversational American female
 
 💡 PRO TIP: Use search_voices() first to see all available voices!
 Example: search_voices("female") → Returns female voices → Pick one""")
@@ -456,10 +459,10 @@ def search_voices(
 ) -> list[McpVoice]:
     # Common working voices that AI should use by default
     common_voices = {
-        "James": "professional male narrator, v3-optimized",
-        "Jane": "friendly female narrator, v3-optimized", 
-        "Sarah": "warm female voice, v3-optimized",
-        "Mark": "conversational male, v3-optimized",
+        "James": "husky & engaging audiobook narrator, v3-optimized (ID: EkK5I93UQWFDigLMpZcX)",
+        "Jane": "professional audiobook reader, v3-optimized (ID: RILOU7YmBhvwJGDGjNmP)", 
+        "Juniper": "grounded female professional, v3-optimized (ID: aMSt68OGf4xUZAnLpTU8)",
+        "Mark": "ConvoAI optimized, v3-optimized (ID: 1SM7GgM6IMuvQlz2BwM3)",
         "Adam": "versatile male voice",
         "Antoni": "well-rounded male voice",
         "Rachel": "conversational American female",
@@ -502,12 +505,28 @@ def search_voices(
     # If searching for v3 voices or model 3, prioritize known v3-optimized voices
     if search and ("v3" in search.lower() or "model 3" in search.lower()):
         # These voice names are known to be optimized for v3 based on ElevenLabs website
+        # Each voice has been verified with its correct ID
         v3_optimized_names = {
-            "James", "Jane", "Juniper", "Arabella", "Nichalia Schwartz",
-            "Hope", "Bradford", "Reginald", "Gaming – Unreal Tonemanagement 2003",
-            "Austin", "kuon", "Blondie", "Priyanka Sogam", "Alexandra",
-            "Monika Sogam", "Jenna", "Mark", "Grimblewood Thornwhisker", 
-            "Adeline", "Sam"
+            "James",  # EkK5I93UQWFDigLMpZcX
+            "Jane",  # RILOU7YmBhvwJGDGjNmP
+            "Juniper",  # aMSt68OGf4xUZAnLpTU8
+            "Arabella",  # Z3R5wn05IrDiVCyEkUrK
+            "Nichalia Schwartz",  # XfNU2rGpBa01ckF309OY
+            "Hope",  # tnSpp4vdxKPjI9w0GnoV
+            "Bradford",  # NNl6r8mD7vthiJatiJt1
+            "Reginald",  # Hjzqw9NR0xFMYU9Us0DL
+            "Gaming – Unreal Tonemanagement 2003",  # YOq2y2Up4RgXP2HyXjE5
+            "Austin",  # Bj9UqZbhQsanLzgalpEG
+            "kuon",  # B8gJV1IhpuegLxdpXFOE
+            "Blondie",  # exsUS4vynmxd379XN4yO
+            "Priyanka Sogam",  # BpjGufoPiobT79j2vtj4
+            "Alexandra",  # kdmDKE6EkgrWrrykO9Qt
+            "Monika Sogam",  # 2zRM7PkgwBPiau2jvVXc
+            "Jenna",  # TgnhEILA8UwUqIMi20rp
+            "Mark",  # 1SM7GgM6IMuvQlz2BwM3
+            "Grimblewood Thornwhisker",  # ouL9IsyrSnUkCmfnD02u
+            "Adeline",  # 5l5f8iK3YPeGga21rQIX
+            "Sam"  # scOwDtmlUjD3prqpp97I
         }
         
         # Sort to put v3-optimized voices first
@@ -1385,7 +1404,7 @@ def text_to_dialogue(
                 if not voice:
                     # Get list of available voice names for better error message
                     available_voices = [v.name for v in voices.voices]
-                    v3_voices = ["James", "Jane", "Sarah", "Mark", "Juniper", "Hope"]
+                    v3_voices = ["James", "Jane", "Juniper", "Mark", "Arabella", "Hope"]
                     available_v3 = [v for v in v3_voices if v in available_voices]
                     
                     make_error(f"""Voice '{input_item['voice_name']}' not found for dialogue!
@@ -1647,26 +1666,26 @@ In the ancient land of Eldoria, where skies shimmered and forests [whispering] w
 1. **Voice Selection Matters**: Choose a voice that matches your intended style. A whispering voice won't shout effectively.
    
    **v3-Optimized Voices** (recommended for best tag responsiveness):
-   - **James**: Husky & engaging, perfect for audiobooks and narration
-   - **Jane**: Professional audiobook reader, great for storytelling
-   - **Juniper**: Grounded female professional, ideal for podcasts
-   - **Arabella**: Young, mysterious & emotive tone for fantasy/romance
-   - **Nichalia Schwartz**: Friendly, intelligent voice for e-learning & narration
-   - **Hope**: Upbeat and clear
-   - **Bradford**: British male storyteller, expressive & articulate
-   - **Reginald**: Dark, brooding character voice for video games
-   - **Gaming – Unreal Tonemanagement 2003**: Retro arena shooter announcer
-   - **Austin**: Deep Texas accent, good ol' boy character
-   - **kuon**: Acute female & fantastic voice
-   - **Blondie**: British conversational voice
-   - **Priyanka Sogam**: Late night radio voice, smooth & soothing
-   - **Alexandra**: Youthful, authentic & conversational
-   - **Monika Sogam**: Indian English accent for social media & audiobooks
-   - **Jenna**: Warm & articulate American voice
-   - **Mark**: ConvoAI optimized
-   - **Grimblewood Thornwhisker**: British gnome character voice
-   - **Adeline**: Conversational feminine voice for narration
-   - **Sam**: Warm middle-aged American for support & audiobooks
+   - **James** (EkK5I93UQWFDigLMpZcX): Husky & engaging, slightly bassy with standard American accent. Perfect for audiobooks and professional voiceover
+   - **Jane** (RILOU7YmBhvwJGDGjNmP): Professional English audiobook narrator in her 50s, great for narration and storytelling
+   - **Juniper** (aMSt68OGf4xUZAnLpTU8): Grounded female professional, great for podcasts or ConvoAI
+   - **Arabella** (Z3R5wn05IrDiVCyEkUrK): Young, mature female narrator with mysterious & emotive tone for fantasy/romance
+   - **Nichalia Schwartz** (XfNU2rGpBa01ckF309OY): Friendly, intelligent 20s-30s female American for audiobooks & eLearning
+   - **Hope** (tnSpp4vdxKPjI9w0GnoV): Upbeat and clear
+   - **Bradford** (NNl6r8mD7vthiJatiJt1): Adult British male storyteller, expressive & articulate
+   - **Reginald** (Hjzqw9NR0xFMYU9Us0DL): Dark, brooding intense villain character voice for video games
+   - **Gaming – Unreal Tonemanagement 2003** (YOq2y2Up4RgXP2HyXjE5): Retro-futuristic announcer style, sharp metallic authority
+   - **Austin** (Bj9UqZbhQsanLzgalpEG): Good ol' Texas boy with strong accent, deep gravelly voice
+   - **kuon** (B8gJV1IhpuegLxdpXFOE): Acute female & fantastic voice
+   - **Blondie** (exsUS4vynmxd379XN4yO): British woman with warm, natural conversational voice
+   - **Priyanka Sogam** (BpjGufoPiobT79j2vtj4): Late night radio voice with neutral accent, smooth & soothing
+   - **Alexandra** (kdmDKE6EkgrWrrykO9Qt): Youthful, authentic & conversational, relatable and down-to-earth
+   - **Monika Sogam** (2zRM7PkgwBPiau2jvVXc): Indian English accent for social media videos & audiobooks
+   - **Jenna** (TgnhEILA8UwUqIMi20rp): 30yo female American, warm & articulate for podcasts and narration
+   - **Mark** (1SM7GgM6IMuvQlz2BwM3): ConvoAI optimized
+   - **Grimblewood Thornwhisker** (ouL9IsyrSnUkCmfnD02u): British gnome character, high-pitched raspy with snarky comedic timing
+   - **Adeline** (5l5f8iK3YPeGga21rQIX): Conversational feminine voice perfect for narration
+   - **Sam** (scOwDtmlUjD3prqpp97I): Warm middle-aged American for support agents & audiobooks
 
 2. **Prompt Length**: Use prompts > 250 characters for best results with v3.
 
