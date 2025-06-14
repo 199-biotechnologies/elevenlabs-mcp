@@ -36,8 +36,8 @@ async function checkPip(pythonPath) {
 async function installDependencies(pythonPath) {
   console.log('Installing Python dependencies...');
   
-  // Install the package in development mode
-  const installArgs = ['-m', 'pip', 'install', '-e', '.'];
+  // Install the package in development mode with user flag or break-system-packages for managed environments
+  const installArgs = ['-m', 'pip', 'install', '-e', '.', '--user'];
   
   const child = spawn(pythonPath, installArgs, {
     cwd: path.join(__dirname, '..'),
@@ -50,7 +50,22 @@ async function installDependencies(pythonPath) {
       if (code === 0) {
         resolve();
       } else {
-        reject(new Error(`pip install failed with code ${code}`));
+        // If --user fails, try with --break-system-packages
+        console.log('Retrying with --break-system-packages flag...');
+        const retryArgs = ['-m', 'pip', 'install', '-e', '.', '--break-system-packages'];
+        const retryChild = spawn(pythonPath, retryArgs, {
+          cwd: path.join(__dirname, '..'),
+          stdio: 'inherit'
+        });
+        
+        retryChild.on('error', reject);
+        retryChild.on('exit', (retryCode) => {
+          if (retryCode === 0) {
+            resolve();
+          } else {
+            reject(new Error(`pip install failed with code ${retryCode}`));
+          }
+        });
       }
     });
   });

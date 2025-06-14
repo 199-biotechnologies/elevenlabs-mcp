@@ -64,6 +64,26 @@ async function main() {
       env.ELEVENLABS_API_KEY = apiKey;
     }
     
+    // Check if we need to install dependencies first
+    const checkResult = spawn.sync(pythonPath, ['-c', 'import elevenlabs_mcp'], {
+      cwd: path.join(__dirname, '..'),
+      encoding: 'utf8'
+    });
+    
+    if (checkResult.status !== 0) {
+      console.log('Python dependencies not found. Installing...');
+      const setupPath = path.join(__dirname, '..', 'scripts', 'setup.js');
+      const setupResult = spawn.sync('node', [setupPath], {
+        stdio: 'inherit',
+        cwd: path.join(__dirname, '..')
+      });
+      
+      if (setupResult.status !== 0) {
+        console.error('Failed to install dependencies. Please run: pip install elevenlabs mcp');
+        process.exit(1);
+      }
+    }
+    
     // Launch the Python MCP server
     const pythonArgs = ['-m', 'elevenlabs_mcp', ...args];
     
