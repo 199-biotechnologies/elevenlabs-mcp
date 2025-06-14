@@ -16,6 +16,7 @@ import os
 import base64
 import asyncio
 import time
+import re
 from datetime import datetime
 from io import BytesIO
 from typing import Literal
@@ -197,9 +198,17 @@ Did you mean one of these? {', '.join(partial_matches[:5])}
 
     # v3 model requires the dialogue endpoint, even for single speaker
     if model == "v3":
-        # Validate v3-specific parameters
+        # Auto-adjust stability to valid v3 values
+        original_stability = stability
         if stability not in [0.0, 0.5, 1.0]:
-            make_error(f"v3 model requires stability to be exactly 0.0 (Creative), 0.5 (Natural), or 1.0 (Robust). Got: {stability}")
+            # Round to nearest valid value
+            if stability < 0.35:
+                stability = 0.0
+            elif stability <= 0.75:
+                stability = 0.5
+            else:
+                stability = 1.0
+            print(f"Auto-adjusted stability from {original_stability} to {stability}")
         
         # Sanitize text to avoid JSON parsing issues
         # Replace problematic characters that cause escaping issues
@@ -1328,6 +1337,38 @@ async def get_conversation_transcript(
         make_error(f"Failed to fetch transcript: {str(e)}")
 
 
+def count_dialogue_chars(inputs):
+    """Count actual spoken text, excluding tags"""
+    total = 0
+    for item in inputs:
+        # Remove tags before counting
+        text_without_tags = re.sub(r'\[.*?\]', '', item['text'])
+        total += len(text_without_tags)
+    return total
+
+
+def split_dialogue_chunks(inputs, max_chars=2800):  # Leave buffer for safety
+    """Split dialogue into chunks that fit the 3000 char limit"""
+    chunks = []
+    current_chunk = []
+    current_chars = 0
+    
+    for item in inputs:
+        item_chars = len(re.sub(r'\[.*?\]', '', item['text']))
+        if current_chars + item_chars > max_chars and current_chunk:
+            chunks.append(current_chunk)
+            current_chunk = [item]
+            current_chars = item_chars
+        else:
+            current_chunk.append(item)
+            current_chars += item_chars
+    
+    if current_chunk:
+        chunks.append(current_chunk)
+    
+    return chunks
+
+
 @mcp.tool(
     description="""🎭 Multi-Speaker Dialogue with ElevenLabs v3 (ALWAYS USES v3 MODEL)
     
@@ -1336,7 +1377,15 @@ async def get_conversation_transcript(
     2. For single speaker with v3 tags, use text_to_speech(model="v3") instead
     3. For full tag list, call fetch_v3_tags() first
     
-    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs.
+    ⚠️ LIMITS:
+    - 3000 character limit (excluding tags) - auto-splits if exceeded
+    - Stability auto-adjusts to nearest valid value (0.0, 0.5, 1.0)
+    - COST WARNING: This tool makes API calls to ElevenLabs which may incur costs
+    
+    💡 AUTOMATIC FEATURES:
+    - Long dialogues split into multiple files automatically
+    - Stability values rounded to nearest valid option
+    - Character count excludes tags so they don't reduce your content
     
     🎯 COMMON TAGS YOU CAN USE:
     Emotions: [happy], [sad], [angry], [excited], [crying], [laughing], [whispering], [shouting]
@@ -1368,7 +1417,7 @@ async def get_conversation_transcript(
         inputs: List of dialogue turns, each dict must have:
             - text: The dialogue text with v3 audio tags
             - voice_id OR voice_name: The voice to use
-        stability: MUST be 0.0 (Creative), 0.5 (Natural), or 1.0 (Robust)
+        stability: Auto-adjusts to 0.0, 0.5, or 1.0 (default 0.5)
         similarity_boost: Voice similarity (0-1, default 0.75)
         output_directory: Where to save (default $HOME/Desktop)
     """
@@ -1380,9 +1429,17 @@ def text_to_dialogue(
     similarity_boost: float = 0.75,
 ) -> TextContent:
     try:
-        # Validate v3-specific parameters
+        # Auto-adjust stability to valid v3 values
+        original_stability = stability
         if stability not in [0.0, 0.5, 1.0]:
-            make_error(f"v3 model requires stability to be exactly 0.0 (Creative), 0.5 (Natural), or 1.0 (Robust). Got: {stability}")
+            # Round to nearest valid value
+            if stability < 0.35:
+                stability = 0.0
+            elif stability <= 0.75:
+                stability = 0.5
+            else:
+                stability = 1.0
+            print(f"Auto-adjusted stability from {original_stability} to {stability}")
         
         # Validate inputs
         if not inputs or not isinstance(inputs, list):
@@ -1430,8 +1487,22 @@ inputs = [
                 "voice_id": voice_id
             })
         
-        # Check if v3 proxy is enabled
-        if v3_proxy_enabled:
+        # Check character count and split if needed
+        total_chars = count_dialogue_chars(processed_inputs)
+        
+        if total_chars > 3000:
+            print(f"Dialogue exceeds 3000 char limit ({total_chars} chars). Auto-splitting into chunks...")
+            chunks = split_dialogue_chunks(processed_inputs)
+            print(f"Split into {len(chunks)} chunks")
+        else:
+            chunks = [processed_inputs]
+        
+        # Process each chunk
+        output_files = []
+        
+        for chunk_idx, chunk in enumerate(chunks):
+            # Check if v3 proxy is enabled
+            if v3_proxy_enabled:
             # Ensure proxy is running
             import subprocess
             import psutil
@@ -1467,7 +1538,7 @@ inputs = [
         response = httpx.post(
             endpoint,
             json={
-                "inputs": processed_inputs,
+                "inputs": chunk,
                 "model_id": "eleven_v3",
                 "settings": {
                     "quality": None,
@@ -1497,18 +1568,31 @@ inputs = [
         elif response.status_code != 200:
             make_error(f"API error: {response.status_code} - {response.text}")
         
-        # Save audio file
-        output_path = make_output_path(output_directory, base_path)
-        output_file_name = make_output_file("dialogue", "v3_dialogue", output_path, "mp3")
+            # Save audio file
+            output_path = make_output_path(output_directory, base_path)
+            if len(chunks) > 1:
+                output_file_name = make_output_file("dialogue", f"v3_dialogue_part{chunk_idx+1}", output_path, "mp3")
+            else:
+                output_file_name = make_output_file("dialogue", "v3_dialogue", output_path, "mp3")
+            
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(output_path / output_file_name, "wb") as f:
+                f.write(response.content)
+            
+            output_files.append(output_path / output_file_name)
         
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path / output_file_name, "wb") as f:
-            f.write(response.content)
-        
-        return TextContent(
-            type="text",
-            text=f"Success. Dialogue saved as: {output_path / output_file_name}"
-        )
+        # Return success message
+        if len(output_files) == 1:
+            return TextContent(
+                type="text",
+                text=f"Success. Dialogue saved as: {output_files[0]}"
+            )
+        else:
+            files_list = "\n".join(f"- Part {i+1}: {f}" for i, f in enumerate(output_files))
+            return TextContent(
+                type="text",
+                text=f"Success. Dialogue split into {len(output_files)} parts:\n{files_list}"
+            )
         
     except Exception as e:
         make_error(f"Failed to generate dialogue: {str(e)}")
