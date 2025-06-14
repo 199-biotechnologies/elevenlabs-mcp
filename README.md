@@ -31,7 +31,7 @@
 
 This enhanced version adds critical conversational AI features missing from the original:
 
-### 🤖 AI-Friendly Improvements (v0.9.2)
+### 🤖 AI-Friendly Improvements (v0.9.5)
 - **🎯 Smart Voice Defaults**: `search_voices()` now returns common working voices instantly
 - **📚 Educational Error Messages**: Errors guide AI agents to success with examples
 - **🔧 Fixed v3 Proxy**: `text_to_dialogue` now properly uses v3 proxy (no more 403 errors!)
@@ -39,6 +39,8 @@ This enhanced version adds critical conversational AI features missing from the 
 - **🎤 Accurate v3 Voice IDs**: All 20 v3-optimized voices now have correct IDs and descriptions
 - **🏯 Auto-Split Long Dialogues**: Automatically splits dialogues over 3000 chars into multiple files
 - **🎯 Auto-Adjust Stability**: Invalid stability values auto-round to nearest valid option (0.0, 0.5, 1.0)
+- **🏷️ Smart Tag Simplification**: Complex tags auto-convert to valid v3 tags for better quality
+- **⏱️ Dynamic Timeouts**: Prevents timeouts on complex dialogues by calculating appropriate wait times
 
 ### 🆕 ElevenLabs v3 Model Support (Alpha)
 - **🎭 Enhanced Expressiveness**: Use the new v3 model with `model="v3"` parameter

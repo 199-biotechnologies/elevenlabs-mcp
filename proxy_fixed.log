@@ -213,3 +213,5 @@ ERROR:elevenlabs_mcp.v3_proxy:Token refresh failed: {
 INFO:httpx:HTTP Request: POST https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBSsRE_1Os04-bxpd5JTLIniy3UK4OqKys "HTTP/1.1 200 OK"
 INFO:elevenlabs_mcp.v3_proxy:Successfully logged in to Firebase
 INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:59488 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 200 OK

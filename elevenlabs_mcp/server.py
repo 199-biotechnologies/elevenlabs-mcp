@@ -46,6 +46,97 @@ DEFAULT_VOICE_ID = "cgSgspJ2msm6clMCkdW9"
 v3_proxy_enabled = os.getenv("ELEVENLABS_V3_PROXY", "false").lower() == "true"
 v3_proxy_url = f"http://localhost:{os.getenv('V3_PROXY_PORT', '8123')}"
 
+# Valid v3 tags based on ElevenLabs documentation
+VALID_V3_TAGS = {
+    # Emotions
+    'happy', 'sad', 'angry', 'excited', 'crying', 'sobbing',
+    'laughing', 'laughs', 'laughs harder', 'chuckles', 'giggling',
+    'hysterical', 'crazy laugh', 'nervous laugh',
+    
+    # Voice styles  
+    'whispers', 'whispering', 'shouting', 'softly', 'loudly',
+    'sarcastic', 'curious', 'mischievously', 'dramatically',
+    'thoughtful', 'impressed', 'amazed', 'warmly', 'nervously',
+    'trembling voice', 'voice breaking', 'voice cracking',
+    
+    # Actions
+    'sighs', 'exhales', 'yawns', 'breathing heavily',
+    'coughing', 'sniffling', 'gulps', 'swallows',
+    'frustrated sigh', 'happy gasp',
+    
+    # Special
+    'pause', 'long pause', 'silence',
+    
+    # Sounds
+    'footsteps', 'door opening', 'door creaking', 'thunder', 'applause',
+    'clapping', 'gunshot', 'explosion', 'piano', 'leaves rustling'
+}
+
+
+def simplify_tags(text):
+    """Replace complex/invalid tags with simple v3-compatible ones"""
+    # Common replacements for invalid compound tags
+    replacements = {
+        r'\[final,?\s*broken\s*whisper\]': '[whispers]',
+        r'\[hollow\s*whisper\]': '[whispers]',
+        r'\[voice\s+trembling\]': '[trembling voice]',
+        r'\[hollow.*?\]': '[softly]',
+        r'\[philosophical.*?\]': '[thoughtful]',
+        r'\[building.*?\]': '[excited]',
+        r'\[to\s+the\s+(sky|heavens?|air)\]': '',  # Remove stage directions
+        r'\[standing\s+alone.*?\]': '',
+        r'\[.*?alone\]': '[softly]',
+        r'\[eerily\s+calm\]': '[softly]',
+        r'\[profound.*?\]': '[thoughtful]',
+        r'\[bitter.*?\]': '[angry]',
+        r'\[explosive.*?\]': '[shouting]',
+        r'\[quiet\s+devastation\]': '[softly]',
+        r'\[almost\s+inaudible\]': '[whispers]',
+        r'\[barely\s+audible\]': '[whispers]',
+        r'\[fading\s+to\s+nothing\]': '[whispers]',
+    }
+    
+    for pattern, replacement in replacements.items():
+        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+    
+    return text
+
+
+def validate_and_warn_tags(text):
+    """Validate tags and return warnings about invalid ones"""
+    tags = re.findall(r'\[([^\]]+)\]', text)
+    invalid_tags = []
+    
+    for tag in tags:
+        # Clean and check tag
+        clean_tag = tag.strip().lower()
+        # Check exact match or common variations
+        if (clean_tag not in VALID_V3_TAGS and 
+            clean_tag.rstrip('s') not in VALID_V3_TAGS and
+            clean_tag.replace(' ', '') not in VALID_V3_TAGS):
+            invalid_tags.append(tag)
+    
+    return invalid_tags
+
+
+def calculate_dialogue_timeout(inputs):
+    """Calculate appropriate timeout based on dialogue complexity"""
+    total_chars = sum(len(inp['text']) for inp in inputs)
+    tag_count = sum(len(re.findall(r'\[.*?\]', inp['text'])) for inp in inputs)
+    
+    # Base: 30 seconds + 15 seconds per input + 3 seconds per tag
+    timeout = 30 + (len(inputs) * 15) + (tag_count * 3)
+    
+    # Add extra time for long texts
+    if total_chars > 2000:
+        timeout += 30
+    
+    # Cap at 5 minutes but warn if close
+    if timeout > 240:
+        print(f"Complex dialogue detected. Processing may take up to {timeout//60} minutes...")
+    
+    return min(timeout, 300)  # Max 5 minutes
+
 if not api_key:
     raise ValueError("ELEVENLABS_API_KEY environment variable is required")
 
@@ -212,6 +303,15 @@ Did you mean one of these? {', '.join(partial_matches[:5])}
                 stability = 1.0
             print(f"Auto-adjusted stability from {original_stability} to {stability}")
         
+        # Simplify tags for v3
+        text = simplify_tags(text)
+        
+        # Validate and warn about remaining invalid tags
+        invalid_tags = validate_and_warn_tags(text)
+        if invalid_tags:
+            print(f"Warning: These tags may not work properly: {invalid_tags}")
+            print("Consider using: whispers, crying, shouting, pause, etc.")
+        
         # Sanitize text to avoid JSON parsing issues
         # Replace problematic characters that cause escaping issues
         sanitized_text = text.replace('...', '.').replace('\n', ' ')
@@ -272,7 +372,7 @@ Did you mean one of these? {', '.join(partial_matches[:5])}
                 "Content-Type": "application/json",
                 "Accept": "audio/mpeg"
             },
-            timeout=120.0
+            timeout=calculate_dialogue_timeout([{"text": sanitized_text}])
         )
         
         if response.status_code == 403:
@@ -1448,6 +1548,16 @@ def text_to_dialogue(
         if not inputs or not isinstance(inputs, list):
             make_error("inputs must be a non-empty list of dialogue turns")
         
+        # Simplify tags for all inputs
+        for input_item in inputs:
+            if 'text' in input_item:
+                input_item['text'] = simplify_tags(input_item['text'])
+                
+                # Validate and warn about invalid tags
+                invalid_tags = validate_and_warn_tags(input_item['text'])
+                if invalid_tags:
+                    print(f"Warning: Invalid tags found: {invalid_tags}")
+        
         # Process inputs to get voice IDs
         processed_inputs = []
         for i, input_item in enumerate(inputs):
@@ -1558,7 +1668,7 @@ inputs = [
                 "Content-Type": "application/json",
                 "Accept": "audio/mpeg"
             },
-            timeout=120.0
+            timeout=calculate_dialogue_timeout(chunk)
             )
             
             if response.status_code == 403:
