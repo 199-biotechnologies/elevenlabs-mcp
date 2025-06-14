@@ -147,6 +147,10 @@ def text_to_speech(
 
     # v3 model requires the dialogue endpoint, even for single speaker
     if model == "v3":
+        # Sanitize text to avoid JSON parsing issues
+        # Replace problematic characters that cause escaping issues
+        sanitized_text = text.replace('...', '.').replace('\n', ' ')
+        
         # Check if v3 proxy is enabled for users with web access
         if v3_proxy_enabled:
             # Ensure proxy is running
@@ -184,7 +188,7 @@ def text_to_speech(
             endpoint,
             json={
                 "inputs": [{
-                    "text": text,
+                    "text": sanitized_text,
                     "voice_id": voice_id
                 }],
                 "model_id": "eleven_v3",

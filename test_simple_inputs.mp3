@@ -1,0 +1,1 @@
+{"detail":"422: {\"detail\":[{\"type\":\"model_attributes_type\",\"loc\":[\"body\",\"inputs\",0],\"msg\":\"Input should be a valid dictionary or object to extract fields from\",\"input\":[{\"text\":\"[thoughtful] Hello world\\n\",\"voice_id\":\"nPczCjzI2devNBz1zQrb\"}]}]}"}

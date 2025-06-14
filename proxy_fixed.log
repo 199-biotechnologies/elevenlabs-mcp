@@ -1,0 +1,35 @@
+INFO:elevenlabs_mcp.v3_proxy:Starting v3 proxy server on port 8123
+INFO:     Started server process [47319]
+INFO:     Waiting for application startup.
+INFO:httpx:HTTP Request: POST https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBSsRE_1Os04-bxpd5JTLIniy3UK4OqKys "HTTP/1.1 200 OK"
+INFO:elevenlabs_mcp.v3_proxy:Successfully logged in to Firebase
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8123 (Press CTRL+C to quit)
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 422 unknown"
+ERROR:elevenlabs_mcp.v3_proxy:v3 request failed: 422 - {"detail":[{"type":"json_invalid","loc":["body",95],"msg":"JSON decode error","input":{},"ctx":{"error":"Invalid \\escape"}}]}
+ERROR:elevenlabs_mcp.v3_proxy:Proxy error: 422: {"detail":[{"type":"json_invalid","loc":["body",95],"msg":"JSON decode error","input":{},"ctx":{"error":"Invalid \\escape"}}]}
+INFO:     127.0.0.1:61285 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 422 unknown"
+ERROR:elevenlabs_mcp.v3_proxy:v3 request failed: 422 - {"detail":[{"type":"missing","loc":["body","inputs"],"msg":"Field required","input":null}]}
+ERROR:elevenlabs_mcp.v3_proxy:Proxy error: 422: {"detail":[{"type":"missing","loc":["body","inputs"],"msg":"Field required","input":null}]}
+INFO:     127.0.0.1:61971 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 422 unknown"
+ERROR:elevenlabs_mcp.v3_proxy:v3 request failed: 422 - {"detail":[{"type":"missing","loc":["body","inputs"],"msg":"Field required","input":null}]}
+ERROR:elevenlabs_mcp.v3_proxy:Proxy error: 422: {"detail":[{"type":"missing","loc":["body","inputs"],"msg":"Field required","input":null}]}
+INFO:     127.0.0.1:62180 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 422 unknown"
+ERROR:elevenlabs_mcp.v3_proxy:v3 request failed: 422 - {"detail":[{"type":"missing","loc":["body","inputs"],"msg":"Field required","input":null}]}
+ERROR:elevenlabs_mcp.v3_proxy:Proxy error: 422: {"detail":[{"type":"missing","loc":["body","inputs"],"msg":"Field required","input":null}]}
+INFO:     127.0.0.1:62246 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 422 unknown"
+ERROR:elevenlabs_mcp.v3_proxy:v3 request failed: 422 - {"detail":[{"type":"model_attributes_type","loc":["body","inputs",0],"msg":"Input should be a valid dictionary or object to extract fields from","input":[{"text":"[thoughtful] Hello world\n","voice_id":"nPczCjzI2devNBz1zQrb"}]}]}
+ERROR:elevenlabs_mcp.v3_proxy:Proxy error: 422: {"detail":[{"type":"model_attributes_type","loc":["body","inputs",0],"msg":"Input should be a valid dictionary or object to extract fields from","input":[{"text":"[thoughtful] Hello world\n","voice_id":"nPczCjzI2devNBz1zQrb"}]}]}
+INFO:     127.0.0.1:62336 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 422 unknown"
+ERROR:elevenlabs_mcp.v3_proxy:v3 request failed: 422 - {"detail":[{"type":"json_invalid","loc":["body",111],"msg":"JSON decode error","input":{},"ctx":{"error":"Invalid \\escape"}}]}
+ERROR:elevenlabs_mcp.v3_proxy:Proxy error: 422: {"detail":[{"type":"json_invalid","loc":["body",111],"msg":"JSON decode error","input":{},"ctx":{"error":"Invalid \\escape"}}]}
+INFO:     127.0.0.1:62425 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62560 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62661 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 200 OK

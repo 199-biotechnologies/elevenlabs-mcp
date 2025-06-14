@@ -1,0 +1,23 @@
+/Users/biobook/Projects/eleven99labs-mcp/elevenlabs-mcp/elevenlabs_mcp/v3_proxy.py:105: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+        
+  @app.on_event("startup")
+INFO:__main__:Starting v3 proxy server on port 8123
+INFO:     Started server process [46606]
+INFO:     Waiting for application startup.
+INFO:httpx:HTTP Request: POST https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBSsRE_1Os04-bxpd5JTLIniy3UK4OqKys "HTTP/1.1 200 OK"
+INFO:__main__:Successfully logged in to Firebase
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8123 (Press CTRL+C to quit)
+INFO:     127.0.0.1:60133 - "GET /health HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://api.us.elevenlabs.io/v1/text-to-dialogue/stream "HTTP/1.1 422 unknown"
+ERROR:__main__:v3 request failed: 422 - {"detail":[{"type":"json_invalid","loc":["body",92],"msg":"JSON decode error","input":{},"ctx":{"error":"Invalid \\escape"}}]}
+ERROR:__main__:Proxy error: 422: {"detail":[{"type":"json_invalid","loc":["body",92],"msg":"JSON decode error","input":{},"ctx":{"error":"Invalid \\escape"}}]}
+INFO:     127.0.0.1:60229 - "POST /v1/text-to-dialogue/stream HTTP/1.1" 500 Internal Server Error
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [46606]

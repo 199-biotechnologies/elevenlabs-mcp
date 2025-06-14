@@ -117,8 +117,8 @@ async def proxy_v3_dialogue(request: Request):
         # Get valid token
         token = await auth.get_valid_token()
         
-        # Get request body
-        body = await request.body()
+        # Get raw body to avoid JSON parsing issues
+        raw_body = await request.body()
         
         # Forward request to ElevenLabs
         headers = {
@@ -131,7 +131,7 @@ async def proxy_v3_dialogue(request: Request):
         
         response = await auth.client.post(
             "https://api.us.elevenlabs.io/v1/text-to-dialogue/stream",
-            content=body,
+            content=raw_body,
             headers=headers
         )
         
