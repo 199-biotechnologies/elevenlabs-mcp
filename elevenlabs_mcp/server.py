@@ -56,14 +56,19 @@ mcp = FastMCP("ElevenLabs")
 
 
 @mcp.tool(
-    description="""Convert text to speech with a given voice and save the output audio file to a given directory.
+    description="""Convert text to speech with a given voice. 🆕 Now supports ElevenLabs v3 model!
+    
+    🚀 To use v3: Set model="v3" for enhanced expressiveness and audio tags support
+    
     Directory is optional, if not provided, the output file will be saved to $HOME/Desktop.
     Only one of voice_id or voice_name can be provided. If none are provided, the default voice will be used.
 
     ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+    
+    🎭 AUDIO TAGS (v3 only): When using model='v3', you can include tags like [thoughtful], [crying], [laugh], [piano], etc.
 
      Args:
-        text (str): The text to convert to speech.
+        text (str): The text to convert to speech. Can include audio tags when using v3 model.
         voice_name (str, optional): The name of the voice to use.
         stability (float, optional): Stability of the generated audio. Determines how stable the voice is and the randomness between each generation. Lower values introduce broader emotional range for the voice. Higher values can result in a monotonous voice with limited emotion. Range is 0 to 1.
         similarity_boost (float, optional): Similarity boost of the generated audio. Determines how closely the AI should adhere to the original voice when attempting to replicate it. Range is 0 to 1.
@@ -73,6 +78,7 @@ mcp = FastMCP("ElevenLabs")
         output_directory (str, optional): Directory where files should be saved.
             Defaults to $HOME/Desktop if not provided.
         language: ISO 639-1 language code for the voice.
+        model (str, optional): The model to use - 'v2' (default), 'v3' (🆕 NEW! More expressive with audio tags), or 'flash' (fast).
         output_format (str, optional): Output format of the generated audio. Formatted as codec_sample_rate_bitrate. So an mp3 with 22.05kHz sample rate at 32kbs is represented as mp3_22050_32. MP3 with 192kbps bitrate requires you to be subscribed to Creator tier or above. PCM with 44.1kHz sample rate requires you to be subscribed to Pro tier or above. Note that the μ-law format (sometimes written mu-law, often approximated as u-law) is commonly used for Twilio audio inputs.
             Defaults to "mp3_44100_128". Must be one of:
             mp3_22050_32
@@ -109,6 +115,7 @@ def text_to_speech(
     use_speaker_boost: bool = True,
     speed: float = 1.0,
     language: str = "en",
+    model: str = "v2",
     output_format: str = "mp3_44100_128",
 ):
     if text == "":
@@ -133,7 +140,14 @@ def text_to_speech(
     output_path = make_output_path(output_directory, base_path)
     output_file_name = make_output_file("tts", text, output_path, "mp3")
 
-    model_id = "eleven_flash_v2_5" if language in ["hu", "no", "vi"] else "eleven_multilingual_v2"
+    # Select model based on user preference
+    if model == "v3":
+        model_id = "eleven_v3"
+    elif model == "flash":
+        model_id = "eleven_flash_v2_5"
+    else:
+        # Default v2 behavior
+        model_id = "eleven_flash_v2_5" if language in ["hu", "no", "vi"] else "eleven_multilingual_v2"
 
     audio_data = client.text_to_speech.convert(
         text=text,
@@ -1086,6 +1100,142 @@ async def get_conversation_transcript(
             
     except Exception as e:
         make_error(f"Failed to fetch transcript: {str(e)}")
+
+
+@mcp.tool(
+    description="""🆕 NEW v3 FEATURE: Generate natural dialogue between multiple speakers with enhanced expressiveness!
+    
+    This uses the new ElevenLabs v3 model for multi-speaker dialogue generation.
+    
+    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+    
+    🎭 AUDIO TAGS: You can include tags like [thoughtful], [crying], [laughing], [piano], [footsteps], etc.
+    
+    Args:
+        inputs: List of dialogue turns, each with text and voice_id/voice_name
+        output_directory: Directory where the audio file should be saved (defaults to $HOME/Desktop)
+        stability: Stability of the generated audio (0-1, default 0.5)
+        similarity_boost: Similarity boost of the generated audio (0-1, default 0.75)
+        
+    Returns:
+        Path to the generated audio file
+    """
+)
+def text_to_dialogue(
+    inputs: list[dict],
+    output_directory: str | None = None,
+    stability: float = 0.5,
+    similarity_boost: float = 0.75,
+) -> TextContent:
+    try:
+        # Process inputs to get voice IDs
+        processed_inputs = []
+        for input_item in inputs:
+            if "voice_name" in input_item and "voice_id" not in input_item:
+                # Look up voice by name
+                voices = client.voices.get_all()
+                voice = next((v for v in voices.voices if v.name == input_item["voice_name"]), None)
+                if not voice:
+                    make_error(f"Voice with name '{input_item['voice_name']}' not found")
+                voice_id = voice.voice_id
+            else:
+                voice_id = input_item.get("voice_id")
+                if not voice_id:
+                    make_error("Each input must have either voice_id or voice_name")
+            
+            processed_inputs.append({
+                "text": input_item["text"],
+                "voice_id": voice_id
+            })
+        
+        # Make API call to text-to-dialogue endpoint
+        response = httpx.post(
+            "https://api.elevenlabs.io/v1/text-to-dialogue/stream",
+            json={
+                "inputs": processed_inputs,
+                "model_id": "eleven_v3",
+                "settings": {
+                    "quality": None,
+                    "similarity_boost": similarity_boost,
+                    "stability": stability
+                }
+            },
+            headers={
+                "xi-api-key": api_key,
+                "Content-Type": "application/json",
+                "Accept": "audio/mpeg"
+            },
+            timeout=120.0
+        )
+        
+        if response.status_code != 200:
+            make_error(f"API error: {response.status_code} - {response.text}")
+        
+        # Save audio file
+        output_path = make_output_path(output_directory, base_path)
+        output_file_name = make_output_file("dialogue", "v3_dialogue", output_path, "mp3")
+        
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path / output_file_name, "wb") as f:
+            f.write(response.content)
+        
+        return TextContent(
+            type="text",
+            text=f"Success. Dialogue saved as: {output_path / output_file_name}"
+        )
+        
+    except Exception as e:
+        make_error(f"Failed to generate dialogue: {str(e)}")
+
+
+@mcp.tool(
+    description="""Enhance dialogue text with proper formatting for v3 model generation. Analyzes text and suggests audio tags.
+    
+    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+    
+    Args:
+        dialogue_blocks: List of dialogue text blocks to enhance
+        
+    Returns:
+        Enhanced dialogue with suggested audio tags and formatting
+    """
+)
+def enhance_dialogue(
+    dialogue_blocks: list[str],
+) -> TextContent:
+    try:
+        # Make API call to enhance-dialogue endpoint
+        response = httpx.post(
+            "https://api.elevenlabs.io/v1/enhance-dialogue",
+            json={
+                "dialogue_blocks": dialogue_blocks
+            },
+            headers={
+                "xi-api-key": api_key,
+                "Content-Type": "application/json"
+            },
+            timeout=30.0
+        )
+        
+        if response.status_code != 200:
+            make_error(f"API error: {response.status_code} - {response.text}")
+        
+        result = response.json()
+        
+        # Format the enhanced dialogue for display
+        if isinstance(result, dict) and "enhanced_blocks" in result:
+            enhanced_text = "\n\n".join(result["enhanced_blocks"])
+        else:
+            # Handle different response formats
+            enhanced_text = str(result)
+        
+        return TextContent(
+            type="text",
+            text=f"Enhanced dialogue:\n\n{enhanced_text}\n\nYou can now use this enhanced text with the text_to_dialogue or text_to_speech tools."
+        )
+        
+    except Exception as e:
+        make_error(f"Failed to enhance dialogue: {str(e)}")
 
 
 def main():

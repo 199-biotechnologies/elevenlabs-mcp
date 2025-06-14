@@ -31,7 +31,14 @@
 
 This enhanced version adds critical conversational AI features missing from the original:
 
-- **🎙️ Conversation History**: Retrieve full conversation details including transcripts
+### 🆕 ElevenLabs v3 Model Support (Alpha)
+- **🎭 Enhanced Expressiveness**: Use the new v3 model with `model="v3"` parameter
+- **🎤 Audio Tags**: Add emotions and sound effects like `[thoughtful]`, `[crying]`, `[laughing]`, `[piano]`
+- **👥 Multi-Speaker Dialogue**: Generate natural conversations between multiple speakers
+- **✨ Dialogue Enhancement**: Automatically enhance your dialogue with proper formatting and tags
+
+### 🎙️ Conversational AI Features
+- **Conversation History**: Retrieve full conversation details including transcripts
 - **📝 Transcript Access**: Get conversation transcripts in multiple formats (plain, timestamps, JSON)
 - **⏳ Real-time Monitoring**: Wait for ongoing conversations to complete and retrieve results
 - **🔍 Conversation Search**: List and filter conversations by agent, status, and more
@@ -149,6 +156,15 @@ Try asking Claude:
 - "Convert this recording of my voice to sound like a medieval knight"
 - "Create a soundscape of a thunderstorm in a dense jungle with animals reacting to the weather"
 - "Turn this speech into text, identify different speakers, then convert it back using unique voices for each person"
+
+### 🆕 v3 Model Examples
+
+Try the new v3 model with enhanced expressiveness:
+
+- "Using v3 model, generate speech with: '[thoughtful] The universe is vast... [piano] ...and full of mysteries.'"
+- "Create a dialogue between two characters using v3 with different emotions: happy, sad, and excited"
+- "Use v3 to narrate a story with sound effects like [footsteps], [door creaking], and [thunder]"
+- "Enhance my dialogue text with appropriate audio tags for v3 generation"
 
 ### 🆕 New Conversation Features
 
