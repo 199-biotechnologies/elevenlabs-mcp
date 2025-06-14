@@ -167,6 +167,11 @@ Try the new v3 model with enhanced expressiveness:
 - "Use v3 to narrate a story with sound effects like [footsteps], [door creaking], and [thunder]"
 - "Enhance my dialogue text with appropriate audio tags for v3 generation"
 
+**⚠️ Important v3 Requirements:**
+- Stability must be exactly: 0.0 (Creative), 0.5 (Natural), or 1.0 (Robust)
+- v3 access requires approval from ElevenLabs (or use the proxy below)
+- Use v3-optimized voices for best results (see voice guide)
+
 ### 🆕 New Conversation Features
 
 With the enhanced conversation tools, you can now:

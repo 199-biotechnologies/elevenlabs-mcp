@@ -75,7 +75,9 @@ mcp = FastMCP("ElevenLabs")
      Args:
         text (str): The text to convert to speech. Can include audio tags when using v3 model.
         voice_name (str, optional): The name of the voice to use.
-        stability (float, optional): Stability of the generated audio. Determines how stable the voice is and the randomness between each generation. Lower values introduce broader emotional range for the voice. Higher values can result in a monotonous voice with limited emotion. Range is 0 to 1.
+        stability (float, optional): Stability of the generated audio. Determines how stable the voice is and the randomness between each generation. Lower values introduce broader emotional range for the voice. Higher values can result in a monotonous voice with limited emotion.
+            For v2/flash models: Range is 0 to 1 (default: 0.5)
+            For v3 model: Must be exactly 0.0 (Creative), 0.5 (Natural), or 1.0 (Robust)
         similarity_boost (float, optional): Similarity boost of the generated audio. Determines how closely the AI should adhere to the original voice when attempting to replicate it. Range is 0 to 1.
         style (float, optional): Style of the generated audio. Determines the style exaggeration of the voice. This setting attempts to amplify the style of the original speaker. It does consume additional computational resources and might increase latency if set to anything other than 0. Range is 0 to 1.
         use_speaker_boost (bool, optional): Use speaker boost of the generated audio. This setting boosts the similarity to the original speaker. Using this setting requires a slightly higher computational load, which in turn increases latency.
@@ -147,6 +149,10 @@ def text_to_speech(
 
     # v3 model requires the dialogue endpoint, even for single speaker
     if model == "v3":
+        # Validate v3-specific parameters
+        if stability not in [0.0, 0.5, 1.0]:
+            make_error(f"v3 model requires stability to be exactly 0.0 (Creative), 0.5 (Natural), or 1.0 (Robust). Got: {stability}")
+        
         # Sanitize text to avoid JSON parsing issues
         # Replace problematic characters that cause escaping issues
         sanitized_text = text.replace('...', '.').replace('\n', ' ')
@@ -209,8 +215,18 @@ def text_to_speech(
             timeout=120.0
         )
         
-        if response.status_code == 422 and not v3_proxy_enabled:
+        if response.status_code == 403:
             make_error("v3 access denied. You need special access from ElevenLabs sales, or enable v3 proxy with ELEVENLABS_V3_PROXY=true")
+        elif response.status_code == 422:
+            # Parse error details for better messaging
+            try:
+                error_detail = response.json()
+                if "stability" in str(error_detail):
+                    make_error(f"v3 parameter error: stability must be exactly 0.0, 0.5, or 1.0. Details: {error_detail}")
+                else:
+                    make_error(f"v3 parameter validation error: {error_detail}")
+            except:
+                make_error(f"v3 API error: {response.status_code} - {response.text}")
         elif response.status_code != 200:
             make_error(f"v3 API error: {response.status_code} - {response.text}")
         
@@ -1459,10 +1475,11 @@ In the ancient land of Eldoria, where skies shimmered and forests [whispering] w
    - CAPITALS increase emphasis naturally
    - Proper punctuation creates rhythm
 
-4. **Stability Settings**:
-   - **Creative**: Most expressive but may hallucinate
-   - **Natural**: Balanced (recommended for most uses)
-   - **Robust**: Very stable but less responsive to tags
+4. **Stability Settings** (v3 requires exact values):
+   - **0.0 - Creative**: Most expressive but may hallucinate
+   - **0.5 - Natural**: Balanced (recommended for most uses) 
+   - **1.0 - Robust**: Very stable but less responsive to tags
+   ⚠️ v3 ONLY accepts these exact values: 0.0, 0.5, or 1.0
 
 5. **Context Matters**: Tags work better when they make sense in context. Don't overuse them.
 
