@@ -65,7 +65,8 @@ mcp = FastMCP("ElevenLabs")
 
     ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
     
-    🎭 AUDIO TAGS (v3 only): When using model='v3', you can include tags like [thoughtful], [crying], [laugh], [piano], etc.
+    🎭 AUDIO TAGS (v3 only): When using model='v3', you can include tags like [thoughtful], [crying], [laughs], [piano], etc.
+    Note: v3 uses a special endpoint for enhanced expressiveness even with single speakers.
 
      Args:
         text (str): The text to convert to speech. Can include audio tags when using v3 model.
@@ -140,29 +141,57 @@ def text_to_speech(
     output_path = make_output_path(output_directory, base_path)
     output_file_name = make_output_file("tts", text, output_path, "mp3")
 
-    # Select model based on user preference
+    # v3 model requires the dialogue endpoint, even for single speaker
     if model == "v3":
-        model_id = "eleven_v3"
-    elif model == "flash":
-        model_id = "eleven_flash_v2_5"
+        # Use text-to-dialogue endpoint for v3
+        response = httpx.post(
+            "https://api.elevenlabs.io/v1/text-to-dialogue/stream",
+            json={
+                "inputs": [{
+                    "text": text,
+                    "voice_id": voice_id
+                }],
+                "model_id": "eleven_v3",
+                "settings": {
+                    "quality": None,
+                    "similarity_boost": similarity_boost,
+                    "stability": stability
+                }
+            },
+            headers={
+                "xi-api-key": api_key,
+                "Content-Type": "application/json",
+                "Accept": "audio/mpeg"
+            },
+            timeout=120.0
+        )
+        
+        if response.status_code != 200:
+            make_error(f"v3 API error: {response.status_code} - {response.text}")
+        
+        audio_bytes = response.content
     else:
-        # Default v2 behavior
-        model_id = "eleven_flash_v2_5" if language in ["hu", "no", "vi"] else "eleven_multilingual_v2"
-
-    audio_data = client.text_to_speech.convert(
-        text=text,
-        voice_id=voice_id,
-        model_id=model_id,
-        output_format=output_format,
-        voice_settings={
-            "stability": stability,
-            "similarity_boost": similarity_boost,
-            "style": style,
-            "use_speaker_boost": use_speaker_boost,
-            "speed": speed,
-        },
-    )
-    audio_bytes = b"".join(audio_data)
+        # v2 and flash models use regular text-to-speech endpoint
+        if model == "flash":
+            model_id = "eleven_flash_v2_5"
+        else:
+            # Default v2 behavior
+            model_id = "eleven_flash_v2_5" if language in ["hu", "no", "vi"] else "eleven_multilingual_v2"
+        
+        audio_data = client.text_to_speech.convert(
+            text=text,
+            voice_id=voice_id,
+            model_id=model_id,
+            output_format=output_format,
+            voice_settings={
+                "stability": stability,
+                "similarity_boost": similarity_boost,
+                "style": style,
+                "use_speaker_boost": use_speaker_boost,
+                "speed": speed,
+            },
+        )
+        audio_bytes = b"".join(audio_data)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path / output_file_name, "wb") as f:
@@ -1239,12 +1268,55 @@ def enhance_dialogue(
 
 
 @mcp.tool(
+    description="""Get concise list of ElevenLabs v3 audio tags.
+    
+    Returns a quick reference of available tags for emotions, sounds, and effects.
+    Automatically called when users mention "tags" in their v3 requests.
+    
+    Note: This list is not exhaustive - experiment with variations!
+    """
+)
+def fetch_v3_tags() -> TextContent:
+    tags_list = """🎭 **ElevenLabs v3 Audio Tags** (not exhaustive - experiment!)
+
+**Emotions & Expressions:**
+• [laughs], [laughs harder], [giggling], [chuckles]
+• [sighs], [exhales], [frustrated sigh], [happy gasp]
+• [whispers], [whispering], [softly], [SHOUTING]
+• [sarcastic], [curious], [excited], [mischievously]
+• [crying], [snorts], [impressed], [dramatically]
+• [delighted], [amazed], [warmly], [nervously]
+
+**Sound Effects:**
+• [footsteps], [door creaking], [thunder], [piano]
+• [gunshot], [explosion], [applause], [clapping]
+• [swallows], [gulps], [leaves rustling]
+
+**Special:**
+• [strong X accent] (e.g., [strong British accent])
+• [sings], [yawns], [woo]
+
+💡 **Quick Tips:**
+- Use CAPITALS for emphasis
+- Add ... for pauses
+- Match tags to context
+- Don't overuse tags
+
+📝 **Example:**
+"[softly] In the quiet forest, [footsteps] she walked carefully. [whispers] 'Is anyone there?' [nervous laugh] No response came."
+
+For full guide with best practices, use: get_v3_audio_tags_guide()"""
+    
+    return TextContent(type="text", text=tags_list)
+
+
+@mcp.tool(
     description="""Get comprehensive guide for using ElevenLabs v3 audio tags and best practices.
     
     This tool provides:
-    - List of available audio tags (emotions, sounds, etc.)
-    - Best practices for v3 prompting
-    - Examples of effective tag usage
+    - Complete list of available audio tags
+    - Detailed best practices for v3 prompting
+    - Extended examples of effective tag usage
     - Tips for different use cases
     
     No API call required - returns instructional content.
