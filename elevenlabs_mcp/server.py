@@ -1089,7 +1089,6 @@ async def get_conversation_transcript(
 
 
 def main():
-    print("Starting MCP server")
     """Run the MCP server"""
     mcp.run()
 

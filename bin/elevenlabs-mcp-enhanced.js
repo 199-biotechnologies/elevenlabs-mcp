@@ -71,7 +71,7 @@ async function main() {
     });
     
     if (checkResult.status !== 0) {
-      console.log('Python dependencies not found. Installing...');
+      console.error('Python dependencies not found. Installing...');
       const setupPath = path.join(__dirname, '..', 'scripts', 'setup.js');
       const setupResult = spawn.sync('node', [setupPath], {
         stdio: 'inherit',
@@ -84,10 +84,9 @@ async function main() {
       }
     }
     
-    // Launch the Python MCP server
-    const pythonArgs = ['-m', 'elevenlabs_mcp', ...args];
-    
-    console.log('Starting ElevenLabs MCP Enhanced server...');
+    // Launch the Python MCP server directly
+    const serverPath = path.join(__dirname, '..', 'elevenlabs_mcp', 'server.py');
+    const pythonArgs = [serverPath, ...args];
     
     const child = spawn(pythonPath, pythonArgs, {
       cwd: path.join(__dirname, '..'),
