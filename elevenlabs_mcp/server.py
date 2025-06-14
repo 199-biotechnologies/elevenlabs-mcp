@@ -83,6 +83,8 @@ mcp = FastMCP("ElevenLabs")
     🎭 v3 TAGS: [happy], [sad], [laughing], [whispering], [shouting], [pause], [piano], etc.
     💡 Call fetch_v3_tags() for full list!
     
+    ⚠️ v3 LIMITATIONS: Only stability & similarity_boost work with v3 (no style/speed/speaker_boost)
+    
     🚨 MULTIPLE SPEAKERS? Stop! Use text_to_dialogue() instead!
 
      Args:
@@ -225,10 +227,11 @@ Did you mean one of these? {', '.join(partial_matches[:5])}
             proxy_running = False
             for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
                 try:
-                    if 'v3_proxy.py' in ' '.join(proc.info['cmdline'] or []):
+                    cmdline = proc.info.get('cmdline')
+                    if cmdline and 'v3_proxy.py' in ' '.join(cmdline):
                         proxy_running = True
                         break
-                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                except (psutil.NoSuchProcess, psutil.AccessDenied, AttributeError):
                     continue
             
             if not proxy_running:
@@ -1512,10 +1515,11 @@ inputs = [
                 proxy_running = False
                 for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
                     try:
-                        if 'v3_proxy.py' in ' '.join(proc.info['cmdline'] or []):
+                        cmdline = proc.info.get('cmdline')
+                        if cmdline and 'v3_proxy.py' in ' '.join(cmdline):
                             proxy_running = True
                             break
-                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    except (psutil.NoSuchProcess, psutil.AccessDenied, AttributeError):
                         continue
                 
                 if not proxy_running:

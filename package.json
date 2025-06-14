@@ -1,6 +1,6 @@
 {
   "name": "elevenlabs-mcp-enhanced",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "Enhanced ElevenLabs MCP Server with conversation history features",
   "main": "index.js",
   "bin": {
