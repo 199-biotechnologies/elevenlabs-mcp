@@ -395,7 +395,13 @@ def search_voices(
     # If searching for v3 voices or model 3, prioritize known v3-optimized voices
     if search and ("v3" in search.lower() or "model 3" in search.lower()):
         # These voice names are known to be optimized for v3 based on ElevenLabs website
-        v3_optimized_names = {"Brian", "Jessica", "Chris", "Lily", "Charlotte", "Alice", "Liam", "Maya"}
+        v3_optimized_names = {
+            "James", "Jane", "Juniper", "Arabella", "Nichalia Schwartz",
+            "Hope", "Bradford", "Reginald", "Gaming – Unreal Tonemanagement 2003",
+            "Austin", "kuon", "Blondie", "Priyanka Sogam", "Alexandra",
+            "Monika Sogam", "Jenna", "Mark", "Grimblewood Thornwhisker", 
+            "Adeline", "Sam"
+        }
         
         # Sort to put v3-optimized voices first
         v3_voices = []
@@ -1425,14 +1431,26 @@ In the ancient land of Eldoria, where skies shimmered and forests [whispering] w
 1. **Voice Selection Matters**: Choose a voice that matches your intended style. A whispering voice won't shout effectively.
    
    **v3-Optimized Voices** (recommended for best tag responsiveness):
-   - **Brian**: Professional and versatile male voice
-   - **Jessica**: Natural, expressive female voice
-   - **Chris**: Deep, professional male voice
-   - **Lily**: Young, engaging female voice
-   - **Charlotte**: British accent, great for characters
-   - **Alice**: News anchor style, clear and articulate
-   - **Liam**: Natural conversational male voice
-   - **Maya**: Warm and friendly female voice
+   - **James**: Husky & engaging, perfect for audiobooks and narration
+   - **Jane**: Professional audiobook reader, great for storytelling
+   - **Juniper**: Grounded female professional, ideal for podcasts
+   - **Arabella**: Young, mysterious & emotive tone for fantasy/romance
+   - **Nichalia Schwartz**: Friendly, intelligent voice for e-learning & narration
+   - **Hope**: Upbeat and clear
+   - **Bradford**: British male storyteller, expressive & articulate
+   - **Reginald**: Dark, brooding character voice for video games
+   - **Gaming – Unreal Tonemanagement 2003**: Retro arena shooter announcer
+   - **Austin**: Deep Texas accent, good ol' boy character
+   - **kuon**: Acute female & fantastic voice
+   - **Blondie**: British conversational voice
+   - **Priyanka Sogam**: Late night radio voice, smooth & soothing
+   - **Alexandra**: Youthful, authentic & conversational
+   - **Monika Sogam**: Indian English accent for social media & audiobooks
+   - **Jenna**: Warm & articulate American voice
+   - **Mark**: ConvoAI optimized
+   - **Grimblewood Thornwhisker**: British gnome character voice
+   - **Adeline**: Conversational feminine voice for narration
+   - **Sam**: Warm middle-aged American for support & audiobooks
 
 2. **Prompt Length**: Use prompts > 250 characters for best results with v3.
 
