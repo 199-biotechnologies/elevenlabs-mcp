@@ -1,0 +1,24 @@
+{
+  "v3_optimized_voices": {
+    "21m00Tcm4TlvDq8ikWAM": {
+      "name": "Rachel",
+      "category": "default",
+      "description": "Optimized for v3 emotional expression"
+    },
+    "5l5f8iK3YPeGga21rQIX": {
+      "name": "Unknown",
+      "category": "default",
+      "description": "V3 compatible voice"
+    },
+    "cgSgspJ2msm6clMCkdW9": {
+      "name": "Default",
+      "category": "default", 
+      "description": "Default v3 voice"
+    }
+  },
+  "v3_voice_categories": [
+    "default",
+    "generated"
+  ],
+  "notes": "Update this list as ElevenLabs releases v3 API documentation"
+}

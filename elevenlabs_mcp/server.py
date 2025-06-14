@@ -386,10 +386,30 @@ def search_voices(
     response = client.voices.search(
         search=search, sort=sort, sort_direction=sort_direction
     )
-    return [
+    
+    voices = [
         McpVoice(id=voice.voice_id, name=voice.name, category=voice.category)
         for voice in response.voices
     ]
+    
+    # If searching for v3 voices or model 3, prioritize known v3-optimized voices
+    if search and ("v3" in search.lower() or "model 3" in search.lower()):
+        # These voice names are known to be optimized for v3 based on ElevenLabs website
+        v3_optimized_names = {"Brian", "Jessica", "Chris", "Lily", "Charlotte", "Alice", "Liam", "Maya"}
+        
+        # Sort to put v3-optimized voices first
+        v3_voices = []
+        other_voices = []
+        
+        for voice in voices:
+            if voice.name in v3_optimized_names:
+                v3_voices.append(voice)
+            else:
+                other_voices.append(voice)
+        
+        return v3_voices + other_voices
+    
+    return voices
 
 
 @mcp.tool(description="List all available models")
@@ -1403,6 +1423,16 @@ In the ancient land of Eldoria, where skies shimmered and forests [whispering] w
 ## 💡 Best Practices
 
 1. **Voice Selection Matters**: Choose a voice that matches your intended style. A whispering voice won't shout effectively.
+   
+   **v3-Optimized Voices** (recommended for best tag responsiveness):
+   - **Brian**: Professional and versatile male voice
+   - **Jessica**: Natural, expressive female voice
+   - **Chris**: Deep, professional male voice
+   - **Lily**: Young, engaging female voice
+   - **Charlotte**: British accent, great for characters
+   - **Alice**: News anchor style, clear and articulate
+   - **Liam**: Natural conversational male voice
+   - **Maya**: Warm and friendly female voice
 
 2. **Prompt Length**: Use prompts > 250 characters for best results with v3.
 
