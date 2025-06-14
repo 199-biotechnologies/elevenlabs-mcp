@@ -1238,6 +1238,97 @@ def enhance_dialogue(
         make_error(f"Failed to enhance dialogue: {str(e)}")
 
 
+@mcp.tool(
+    description="""Get comprehensive guide for using ElevenLabs v3 audio tags and best practices.
+    
+    This tool provides:
+    - List of available audio tags (emotions, sounds, etc.)
+    - Best practices for v3 prompting
+    - Examples of effective tag usage
+    - Tips for different use cases
+    
+    No API call required - returns instructional content.
+    """
+)
+def get_v3_audio_tags_guide() -> TextContent:
+    guide = """# ElevenLabs v3 Audio Tags & Best Practices Guide
+
+## 🎭 Available Audio Tags
+
+### Emotional Expression
+- **Laughter**: [laughs], [laughs harder], [starts laughing], [wheezing]
+- **Vocal Styles**: [whispers], [whispering], [sighs], [exhales], [softly]
+- **Emotions**: [sarcastic], [curious], [excited], [crying], [snorts], [mischievously]
+- **Extended Emotions**: [frustrated sigh], [happy gasp], [excitedly], [curiously], [impressed], [dramatically], [giggling], [delighted], [amazed], [warmly]
+- **Emphasis**: [SHOUTING] or use CAPITALS for emphasis
+
+### Sound Effects
+- **Actions**: [gunshot], [applause], [clapping], [explosion], [swallows], [gulps]
+- **Environmental**: [footsteps], [door creaking], [thunder], [piano], [leaves rustling]
+
+### Special Tags (Experimental)
+- **Accents**: [strong X accent] (replace X with any accent, e.g., [strong British accent])
+- **Musical**: [sings], [woo]
+- **Other**: [fart] (yes, really!)
+
+## 📝 Example Usage
+
+Here's a complete example showing effective v3 tag usage:
+
+```
+In the ancient land of Eldoria, where skies shimmered and forests [whispering] whispered secrets to the wind, lived a dragon named Zephyros. [sarcastic] Not the "burn it all down" kind - [exhales] he was gentle, wise, with eyes like old stars. [softly] Even the birds fell silent when he passed.
+
+[footsteps] The young knight approached the cave. [nervous laugh] "H-hello?" she called out. [SHOUTING] "IS ANYONE THERE?"
+
+[dramatically] "Who dares disturb my slumber?" [yawns] the dragon replied. [impressed] "Ah, a knight! [laughs] How delightfully old-fashioned!"
+```
+
+## 💡 Best Practices
+
+1. **Voice Selection Matters**: Choose a voice that matches your intended style. A whispering voice won't shout effectively.
+
+2. **Prompt Length**: Use prompts > 250 characters for best results with v3.
+
+3. **Punctuation is Key**:
+   - Use ellipses (...) for natural pauses
+   - CAPITALS increase emphasis naturally
+   - Proper punctuation creates rhythm
+
+4. **Stability Settings**:
+   - **Creative**: Most expressive but may hallucinate
+   - **Natural**: Balanced (recommended for most uses)
+   - **Robust**: Very stable but less responsive to tags
+
+5. **Context Matters**: Tags work better when they make sense in context. Don't overuse them.
+
+## ⚠️ Important Notes
+
+- These tags are **not exhaustive** - experiment with variations!
+- Tag effectiveness depends on the voice's training data
+- Some tags are experimental and may produce unexpected results
+- Professional Voice Clones (PVCs) may not respond to all tags yet
+- v3 is in ALPHA - expect improvements and changes
+
+## 🎯 Tips for Success
+
+1. Start simple - add one or two tags and test
+2. Match emotional tags to content ([happy gasp] for good news)
+3. Use sound effects sparingly for impact
+4. Test different voices to find the best match
+5. Adjust stability settings based on your needs
+
+## 🌍 Language Support
+
+v3 supports 70+ languages including English, Spanish, French, German, Japanese, Korean, Chinese, and many more. Tags generally work across languages but test for best results.
+
+Remember: The key to great v3 audio is experimentation. Try different combinations and have fun!"""
+    
+    return TextContent(
+        type="text",
+        text=guide
+    )
+
+
 def main():
     """Run the MCP server"""
     mcp.run()
