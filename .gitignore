@@ -1,15 +1,99 @@
-*.pyc
-*.pyo
-*.pyd
-*.pyw
-*.pyz
-*.pywz
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-.env
+# Virtual Environment
+venv/
+ENV/
+env/
 .venv
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+tests/
+test_*.py
+test_*.txt
+*_test.py
+*_tests.py
+
+# Logs
+*.log
+logs/
+log/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 .cursor
 .cursorignore
-dist/
-elevenlabs_mcp.egg-info/
-.coverage
+
+# Security - Never commit these
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.cert
+*.crt
+*.p12
+*.pfx
+passwords.txt
+secrets.json
+credentials.json
+config.secret.*
+
+# Demo/Example files
+demo*.py
+example*.py
+generate_*.py
+*_demo.py
+*_example.py
+
+# Documentation (optional - remove if you want to track docs)
+CHANGELOG*.md
+*_SUMMARY.md
+*_research.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Package files
+*.tar.gz
+*.zip
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+
+# Existing entries
 coverage.xml
+elevenlabs_mcp.egg-info/
