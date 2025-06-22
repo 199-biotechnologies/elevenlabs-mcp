@@ -152,70 +152,7 @@ mcp = FastMCP("ElevenLabs")
 
 
 @mcp.tool(
-    description="""🎤 SINGLE SPEAKER Text-to-Speech (Use text_to_dialogue for multiple speakers!)
-    
-    ✅ USE THIS WHEN:
-    - ONE person speaking (narration, monologue, single voice)
-    - Need specific voice settings (speed, stability, style)
-    - Want v2 (default), v3 (tags), or flash (fast) models
-    
-    ❌ DON'T USE THIS WHEN:
-    - MULTIPLE speakers in conversation → Use text_to_dialogue instead!
-    - You see dialogue format → Use text_to_dialogue instead!
-    
-    📝 EXAMPLES:
-    - Basic: text_to_speech("Hello world")
-    - v3 with tags: text_to_speech("[thoughtful] The universe is vast... [piano]", model="v3") 
-    - Fast: text_to_speech("Quick test", model="flash")
-    - No voice? It works! text_to_speech("Hello") uses default voice
-
-    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs.
-    
-    🎭 v3 TAGS: [happy], [sad], [laughing], [whispering], [shouting], [pause], [piano], etc.
-    💡 Call fetch_v3_tags() for full list!
-    
-    ⚠️ v3 LIMITATIONS: Only stability & similarity_boost work with v3 (no style/speed/speaker_boost)
-    
-    🚨 MULTIPLE SPEAKERS? Stop! Use text_to_dialogue() instead!
-
-     Args:
-        text (str): The text to convert to speech. Can include audio tags when using v3 model.
-        voice_name (str, optional): The name of the voice to use.
-        stability (float, optional): Stability of the generated audio. Determines how stable the voice is and the randomness between each generation. Lower values introduce broader emotional range for the voice. Higher values can result in a monotonous voice with limited emotion.
-            For v2/flash models: Range is 0 to 1 (default: 0.5)
-            For v3 model: Must be exactly 0.0 (Creative), 0.5 (Natural), or 1.0 (Robust)
-        similarity_boost (float, optional): Similarity boost of the generated audio. Determines how closely the AI should adhere to the original voice when attempting to replicate it. Range is 0 to 1.
-        style (float, optional): Style of the generated audio. Determines the style exaggeration of the voice. This setting attempts to amplify the style of the original speaker. It does consume additional computational resources and might increase latency if set to anything other than 0. Range is 0 to 1.
-        use_speaker_boost (bool, optional): Use speaker boost of the generated audio. This setting boosts the similarity to the original speaker. Using this setting requires a slightly higher computational load, which in turn increases latency.
-        speed (float, optional): Speed of the generated audio. Controls the speed of the generated speech. Values range from 0.7 to 1.2, with 1.0 being the default speed. Lower values create slower, more deliberate speech while higher values produce faster-paced speech. Extreme values can impact the quality of the generated speech. Range is 0.7 to 1.2.
-        output_directory (str, optional): Directory where files should be saved.
-            Defaults to $HOME/Desktop if not provided.
-        language: ISO 639-1 language code for the voice.
-        model (str, optional): The model to use - 'v2' (default), 'v3' (🆕 NEW! More expressive with audio tags), or 'flash' (fast).
-        output_format (str, optional): Output format of the generated audio. Formatted as codec_sample_rate_bitrate. So an mp3 with 22.05kHz sample rate at 32kbs is represented as mp3_22050_32. MP3 with 192kbps bitrate requires you to be subscribed to Creator tier or above. PCM with 44.1kHz sample rate requires you to be subscribed to Pro tier or above. Note that the μ-law format (sometimes written mu-law, often approximated as u-law) is commonly used for Twilio audio inputs.
-            Defaults to "mp3_44100_128". Must be one of:
-            mp3_22050_32
-            mp3_44100_32
-            mp3_44100_64
-            mp3_44100_96
-            mp3_44100_128
-            mp3_44100_192
-            pcm_8000
-            pcm_16000
-            pcm_22050
-            pcm_24000
-            pcm_44100
-            ulaw_8000
-            alaw_8000
-            opus_48000_32
-            opus_48000_64
-            opus_48000_96
-            opus_48000_128
-            opus_48000_192
-
-    Returns:
-        Text content with the path to the output file and name of the voice used.
-    """
+    description="Converts text to speech audio. Returns: audio file path. Use when: single speaker narration, voiceover, or monologue needed."
 )
 def text_to_speech(
     text: str,
@@ -231,6 +168,26 @@ def text_to_speech(
     model: str = "v2",
     output_format: str = "mp3_44100_128",
 ):
+    """
+    Converts text to speech using ElevenLabs voices.
+
+    Args:
+        text: The text to convert to speech
+        voice_name: Name of the voice (optional, defaults to agent voice)
+        voice_id: Direct voice ID (overrides voice_name)
+        stability: Voice stability 0-1 (0.5 default)
+        similarity_boost: Voice similarity 0-1 (0.75 default)
+        style: Style exaggeration 0-1 (0 default)
+        use_speaker_boost: Enhanced similarity (true default)
+        speed: Speech speed 0.7-1.2 (1.0 default)
+        model: v2 (default), v3 (with tags), or flash (fast)
+        output_format: Audio format (mp3_44100_128 default)
+        output_directory: Save location (Desktop default)
+        language: ISO 639-1 code (en default)
+
+    Note: Incurs API costs. For multiple speakers use text_to_dialogue.
+    For v3 audio tags, call fetch_v3_tags first.
+    """
     if text == "":
         make_error("Text is required.")
 
@@ -421,22 +378,7 @@ Common voice IDs:
 
 
 @mcp.tool(
-    description="""Transcribe speech from an audio file and either save the output text file to a given directory or return the text to the client directly.
-
-    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
-
-    Args:
-        file_path: Path to the audio file to transcribe
-        language_code: ISO 639-3 language code for transcription (default: "eng" for English)
-        diarize: Whether to diarize the audio file. If True, which speaker is currently speaking will be annotated in the transcription.
-        save_transcript_to_file: Whether to save the transcript to a file.
-        return_transcript_to_client_directly: Whether to return the transcript to the client directly.
-        output_directory: Directory where files should be saved.
-            Defaults to $HOME/Desktop if not provided.
-
-    Returns:
-        TextContent containing the transcription. If save_transcript_to_file is True, the transcription will be saved to a file in the output directory.
-    """
+    description="Transcribes audio to text. Returns: transcript text or file path. Use when: converting speech recordings to text."
 )
 def speech_to_text(
     input_file_path: str,
@@ -446,6 +388,19 @@ def speech_to_text(
     return_transcript_to_client_directly: bool = False,
     output_directory: str | None = None,
 ) -> TextContent:
+    """
+    Transcribes speech from audio files.
+
+    Args:
+        input_file_path: Path to audio file (wav, mp3, m4a, etc.)
+        language_code: ISO 639-3 code (eng default)
+        diarize: Identify different speakers (false default)
+        save_transcript_to_file: Save to file (true default)
+        return_transcript_to_client_directly: Return text directly (false default)
+        output_directory: Save location (Desktop default)
+
+    Note: Incurs API costs. Supports speaker diarization.
+    """
     if not save_transcript_to_file and not return_transcript_to_client_directly:
         make_error("Must save transcript to file or return it to the client directly.")
     file_path = handle_input_file(input_file_path)
@@ -476,38 +431,7 @@ def speech_to_text(
 
 
 @mcp.tool(
-    description="""Convert text description of a sound effect to sound effect with a given duration and save the output audio file to a given directory.
-    Directory is optional, if not provided, the output file will be saved to $HOME/Desktop.
-    Duration must be between 0.5 and 5 seconds.
-
-    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
-
-    Args:
-        text: Text description of the sound effect
-        duration_seconds: Duration of the sound effect in seconds
-        output_directory: Directory where files should be saved.
-            Defaults to $HOME/Desktop if not provided.
-        output_format (str, optional): Output format of the generated audio. Formatted as codec_sample_rate_bitrate. So an mp3 with 22.05kHz sample rate at 32kbs is represented as mp3_22050_32. MP3 with 192kbps bitrate requires you to be subscribed to Creator tier or above. PCM with 44.1kHz sample rate requires you to be subscribed to Pro tier or above. Note that the μ-law format (sometimes written mu-law, often approximated as u-law) is commonly used for Twilio audio inputs.
-            Defaults to "mp3_44100_128". Must be one of:
-            mp3_22050_32
-            mp3_44100_32
-            mp3_44100_64
-            mp3_44100_96
-            mp3_44100_128
-            mp3_44100_192
-            pcm_8000
-            pcm_16000
-            pcm_22050
-            pcm_24000
-            pcm_44100
-            ulaw_8000
-            alaw_8000
-            opus_48000_32
-            opus_48000_64
-            opus_48000_96
-            opus_48000_128
-            opus_48000_192
-    """
+    description="Generates sound effects from text. Returns: audio file path. Use when: creating custom sound effects from descriptions."
 )
 def text_to_sound_effects(
     text: str,
@@ -515,6 +439,17 @@ def text_to_sound_effects(
     output_directory: str | None = None,
     output_format: str = "mp3_44100_128"
 ) -> list[TextContent]:
+    """
+    Creates sound effects from text descriptions.
+
+    Args:
+        text: Description of the sound effect
+        duration_seconds: Length 0.5-5 seconds (2.0 default)
+        output_format: Audio format (mp3_44100_128 default)
+        output_directory: Save location (Desktop default)
+
+    Note: Incurs API costs. Limited to 5 seconds duration.
+    """
     if duration_seconds < 0.5 or duration_seconds > 5:
         make_error(
             "Duration must be between 0.5 and 5 seconds",
@@ -541,29 +476,7 @@ def text_to_sound_effects(
 
 
 @mcp.tool(
-    description="""
-    🔊 Search for voices in your ElevenLabs library - AI-FRIENDLY!
-    
-    ⚡ INSTANT SUCCESS: No search term? Returns common working voices immediately!
-    
-    🎯 SMART DEFAULTS:
-    - Empty search → Returns popular voices (James, Jane, Sarah, etc.)
-    - "v3" → Returns v3-optimized voices first
-    - "female" → Returns female voices
-    - "male" → Returns male voices
-    - "british" → Voices with British accents
-    
-    💡 AI TIP: Start with no search term to get working voices instantly!
-
-    Args:
-        search: Optional search term. Leave empty for common voices!
-        sort: Sort by "name" or "created_at_unix"
-        sort_direction: "asc" or "desc"
-        return_format: "json" for structured data (default), "text" for human-readable
-
-    Returns:
-        Structured JSON with voice details or formatted text list
-    """
+    description="Searches available voices. Returns: JSON with voice details. Use when: finding voices by name, gender, or characteristics."
 )
 def search_voices(
     search: str | None = None,
@@ -571,6 +484,17 @@ def search_voices(
     sort_direction: Literal["asc", "desc"] = "desc",
     return_format: Literal["json", "text"] = "json",
 ) -> TextContent:
+    """
+    Searches ElevenLabs voice library.
+
+    Args:
+        search: Search term (optional, empty returns common voices)
+        sort: Sort by 'name' or 'created_at_unix' (name default)
+        sort_direction: 'asc' or 'desc' (desc default)
+        return_format: 'json' or 'text' (json default)
+
+    Returns structured JSON with voice_id, name, category.
+    """
     # Common working voices that AI should use by default
     common_voices = {
         "James": "husky & engaging audiobook narrator, v3-optimized (ID: EkK5I93UQWFDigLMpZcX)",
@@ -681,26 +605,18 @@ def search_voices(
 
 
 @mcp.tool(
-    description="""Get voice ID by voice name - AI-FRIENDLY helper!
-    
-    This tool automatically resolves voice names to IDs, handling:
-    - Exact matches (case-insensitive)
-    - Fuzzy matching for typos
-    - Returns the best match with confidence score
-    
-    Use this when you have a voice name but need the ID for other tools.
-    
-    Args:
-        voice_name: The name of the voice to find
-        
-    Returns:
-        JSON with voice_id, exact name, and match confidence
-        
-    Example:
-        get_voice_id_by_name("james") → {"voice_id": "EkK5I93...", "name": "James", "confidence": 100}
-    """
+    description="Resolves voice name to ID. Returns: JSON with voice_id and confidence. Use when: need voice ID from name with fuzzy matching."
 )
 def get_voice_id_by_name(voice_name: str) -> TextContent:
+    """
+    Finds voice ID by name with fuzzy matching.
+
+    Args:
+        voice_name: Name of the voice to find
+
+    Returns JSON with voice_id, exact name, confidence score, and match type.
+    Handles typos and case variations.
+    """
     import json
     from fuzzywuzzy import fuzz
     
@@ -754,7 +670,7 @@ def get_voice_id_by_name(voice_name: str) -> TextContent:
         )
 
 
-@mcp.tool(description="List all available models")
+@mcp.tool(description="Lists available TTS models. Returns: model list with capabilities. Use when: choosing between v2, v3, or other models.")
 def list_models() -> list[McpModel]:
     response = client.models.list()
     return [
@@ -770,7 +686,7 @@ def list_models() -> list[McpModel]:
     ]
 
 
-@mcp.tool(description="Get details of a specific voice")
+@mcp.tool(description="Gets voice details. Returns: voice metadata and settings. Use when: need detailed information about a specific voice.")
 def get_voice(voice_id: str) -> McpVoice:
     """Get details of a specific voice."""
     response = client.voices.get(voice_id=voice_id)
@@ -783,14 +699,21 @@ def get_voice(voice_id: str) -> McpVoice:
 
 
 @mcp.tool(
-    description="""Create an instant voice clone of a voice using provided audio files.
-
-    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
-    """
+    description="Creates voice clone from audio. Returns: new voice ID. Use when: creating custom voice from recordings."
 )
 def voice_clone(
     name: str, files: list[str], description: str | None = None
 ) -> TextContent:
+    """
+    Creates instant voice clone.
+
+    Args:
+        name: Name for the new voice
+        files: List of audio file paths
+        description: Voice description (optional)
+
+    Note: Incurs API costs. Requires quality audio samples.
+    """
     input_files = [str(handle_input_file(file).absolute()) for file in files]
     voice = client.voices.ivc.create(
         name=name,
@@ -808,15 +731,20 @@ def voice_clone(
 
 
 @mcp.tool(
-    description="""Isolate audio from a file and save the output audio file to a given directory.
-    Directory is optional, if not provided, the output file will be saved to $HOME/Desktop.
-
-    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
-    """
+    description="Removes background noise from audio. Returns: cleaned audio file path. Use when: extracting voice from noisy recordings."
 )
 def isolate_audio(
     input_file_path: str, output_directory: str | None = None
 ) -> list[TextContent]:
+    """
+    Isolates voice by removing background noise.
+
+    Args:
+        input_file_path: Path to audio file
+        output_directory: Save location (Desktop default)
+
+    Note: Incurs API costs. Works with various audio formats.
+    """
     file_path = handle_input_file(input_file_path)
     output_path = make_output_path(output_directory, base_path)
     output_file_name = make_output_file("iso", file_path.name, output_path, "mp3")
@@ -837,7 +765,7 @@ def isolate_audio(
 
 
 @mcp.tool(
-    description="Check the current subscription status. Could be used to measure the usage of the API."
+    description="Checks account subscription. Returns: subscription details and usage. Use when: monitoring API usage and limits."
 )
 def check_subscription() -> TextContent:
     subscription = client.user.subscription.get()
@@ -845,29 +773,7 @@ def check_subscription() -> TextContent:
 
 
 @mcp.tool(
-    description="""Create a conversational AI agent with custom configuration.
-
-    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
-
-    Args:
-        name: Name of the agent
-        first_message: First message the agent will say i.e. "Hi, how can I help you today?"
-        system_prompt: System prompt for the agent
-        voice_id: ID of the voice to use for the agent
-        language: ISO 639-1 language code for the agent
-        llm: LLM to use for the agent
-        temperature: Temperature for the agent. The lower the temperature, the more deterministic the agent's responses will be. Range is 0 to 1.
-        max_tokens: Maximum number of tokens to generate.
-        asr_quality: Quality of the ASR. `high` or `low`.
-        model_id: ID of the ElevenLabs model to use for the agent.
-        optimize_streaming_latency: Optimize streaming latency. Range is 0 to 4.
-        stability: Stability for the agent. Range is 0 to 1.
-        similarity_boost: Similarity boost for the agent. Range is 0 to 1.
-        turn_timeout: Timeout for the agent to respond in seconds. Defaults to 7 seconds.
-        max_duration_seconds: Maximum duration of a conversation in seconds. Defaults to 600 seconds (10 minutes).
-        record_voice: Whether to record the agent's voice.
-        retention_days: Number of days to retain the agent's data.
-    """
+    description="Creates conversational AI agent. Returns: agent ID and details. Use when: setting up voice-enabled chatbot or assistant."
 )
 def create_agent(
     name: str,
@@ -942,6 +848,18 @@ def add_knowledge_base_to_agent(
     input_file_path: str | None = None,
     text: str | None = None,
 ) -> TextContent:
+    """
+    Adds knowledge base to agent.
+
+    Args:
+        agent_id: Target agent ID
+        knowledge_base_name: Name for the knowledge
+        url: URL to fetch content (optional)
+        input_file_path: File path (optional)
+        text: Direct text content (optional)
+
+    Note: Incurs API costs. Supports epub, pdf, docx, txt, html.
+    """
     provided_params = [
         param for param in [url, input_file_path, text] if param is not None
     ]
@@ -988,7 +906,7 @@ def add_knowledge_base_to_agent(
     )
 
 
-@mcp.tool(description="List all available conversational AI agents")
+@mcp.tool(description="Lists all agents. Returns: agent list with IDs. Use when: viewing available conversational AI agents.")
 def list_agents() -> TextContent:
     """List all available conversational AI agents.
 
@@ -1011,7 +929,7 @@ def list_agents() -> TextContent:
     return TextContent(type="text", text=f"Available Agents:\n\n{formatted_info}")
 
 
-@mcp.tool(description="Get details about a specific conversational AI agent")
+@mcp.tool(description="Gets agent details. Returns: agent configuration. Use when: viewing specific agent settings and capabilities.")
 def get_agent(agent_id: str) -> TextContent:
     """Get details about a specific conversational AI agent.
 
@@ -1044,6 +962,16 @@ def speech_to_speech(
     voice_name: str = "Adam",
     output_directory: str | None = None,
 ) -> TextContent:
+    """
+    Transforms audio to different voice.
+
+    Args:
+        input_file_path: Path to source audio
+        voice_name: Target voice name (Adam default)
+        output_directory: Save location (Desktop default)
+
+    Note: Incurs API costs.
+    """
     voices = client.voices.search(search=voice_name)
 
     if len(voices.voices) == 0:
@@ -1092,6 +1020,16 @@ def text_to_voice(
     text: str | None = None,
     output_directory: str | None = None,
 ) -> TextContent:
+    """
+    Generates voice previews from description.
+
+    Args:
+        voice_description: Description of desired voice
+        text: Sample text (auto-generated if not provided)
+        output_directory: Save location (Desktop default)
+
+    Note: Incurs API costs. Creates 3 variations.
+    """
     if voice_description == "":
         make_error("Voice description is required.")
 
@@ -1124,10 +1062,7 @@ def text_to_voice(
 
 
 @mcp.tool(
-    description="""Add a generated voice to the voice library. Uses the voice ID from the `text_to_voice` tool.
-
-    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
-    """
+    description="Saves generated voice to library. Returns: permanent voice ID. Use when: keeping voice from text_to_voice previews."
 )
 def create_voice_from_preview(
     generated_voice_id: str,
@@ -1147,18 +1082,7 @@ def create_voice_from_preview(
 
 
 @mcp.tool(
-    description="""Make an outbound call via Twilio using an ElevenLabs agent.
-
-    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
-
-    Args:
-        agent_id: The ID of the agent that will handle the call
-        agent_phone_number_id: The ID of the phone number to use for the call
-        to_number: The phone number to call (E.164 format: +1xxxxxxxxxx)
-
-    Returns:
-        TextContent containing information about the call
-    """
+    description="Initiates phone call with agent. Returns: call details. Use when: making automated calls via Twilio integration."
 )
 def make_outbound_call(
     agent_id: str,
@@ -1188,16 +1112,7 @@ Status: Success"""
 
 
 @mcp.tool(
-    description="""Search for a voice across the entire ElevenLabs voice library.
-
-    Args:
-        page: Page number to return (0-indexed)
-        page_size: Number of voices to return per page (1-100)
-        search: Search term to filter voices by
-
-    Returns:
-        TextContent containing information about the shared voices
-    """
+    description="Searches global voice library. Returns: shared voices list. Use when: finding voices across entire ElevenLabs platform."
 )
 def search_voice_library(
     page: int = 0,
@@ -1258,7 +1173,7 @@ def search_voice_library(
     return TextContent(type="text", text=f"Shared Voices:\n\n{formatted_info}")
 
 
-@mcp.tool(description="List all phone numbers associated with the ElevenLabs account")
+@mcp.tool(description="Lists account phone numbers. Returns: phone number list. Use when: viewing available numbers for outbound calls.")
 def list_phone_numbers() -> TextContent:
     """List all phone numbers associated with the ElevenLabs account.
 
@@ -1288,7 +1203,7 @@ def list_phone_numbers() -> TextContent:
     return TextContent(type="text", text=f"Phone Numbers:\n\n{formatted_info}")
 
 
-@mcp.tool(description="Play an audio file. Supports WAV and MP3 formats.")
+@mcp.tool(description="Plays audio file locally. Returns: playback confirmation. Use when: previewing generated audio without downloading.")
 def play_audio(input_file_path: str) -> TextContent:
     file_path = handle_input_file(input_file_path)
     play(open(file_path, "rb").read(), use_ffmpeg=False)
@@ -1296,18 +1211,7 @@ def play_audio(input_file_path: str) -> TextContent:
 
 
 @mcp.tool(
-    description="""Get conversation details including full transcript. By default, waits for the conversation to complete.
-    
-    ⚠️ COST WARNING: This tool makes API calls which may incur costs.
-    
-    Args:
-        conversation_id: The ID of the conversation to retrieve
-        wait_for_completion: If True (default), wait for conversation to complete before returning (max 5 minutes). Set to False for immediate return.
-        include_analysis: Include conversation analysis data if available
-    
-    Returns:
-        Conversation details including transcript, status, metadata, and analysis
-    """
+    description="Gets conversation with transcript. Returns: conversation details and full transcript. Use when: analyzing completed agent conversations."
 )
 async def get_conversation(
     conversation_id: str,
@@ -1399,17 +1303,7 @@ Transcript:
 
 
 @mcp.tool(
-    description="""List conversations with optional filtering.
-    
-    Args:
-        agent_id: Filter by specific agent ID
-        status: Filter by status (initiated, in-progress, processing, done, failed)
-        limit: Number of conversations to return (default: 10, max: 100)
-        offset: Pagination offset (default: 0)
-    
-    Returns:
-        List of conversations with basic details
-    """
+    description="Lists agent conversations. Returns: conversation list with metadata. Use when: browsing conversation history."
 )
 def list_conversations(
     agent_id: str | None = None,
@@ -1475,38 +1369,7 @@ Started: {conv_started}"""
 
 
 @mcp.tool(
-    description="""Get just the transcript from a conversation.
-    
-    ⚠️ COST WARNING: This tool makes API calls which may incur costs.
-    
-    This tool returns transcripts in chunks to avoid token limits. Each response includes:
-    - The current chunk number and total chunks available
-    - A portion of the transcript (default: 100 entries per chunk)
-    
-    To get the full transcript:
-    1. Call with chunk=1 (or no chunk parameter) to get the first chunk
-    2. Check the response for total_chunks (shown as "Chunk X/Y" in output)
-    3. Make additional calls with chunk=2, chunk=3, etc. until you have all chunks
-    
-    Args:
-        conversation_id: The ID of the conversation
-        format: Format for the transcript ('plain', 'timestamps', 'json')
-        chunk: Which chunk to retrieve (1-based, default: 1). Start with 1.
-        chunk_size: Number of transcript entries per chunk (default: 100)
-    
-    Returns:
-        A chunk of the conversation transcript in the requested format.
-        The response always includes chunk metadata (e.g., "[Chunk 1/5]").
-        
-    Example usage:
-        # First call - get chunk 1 and see how many chunks exist
-        get_conversation_transcript(conversation_id="abc123")
-        # Output: "[Chunk 1/3] Entries 1-100 of 250 ..."
-        
-        # Get remaining chunks
-        get_conversation_transcript(conversation_id="abc123", chunk=2)
-        get_conversation_transcript(conversation_id="abc123", chunk=3)
-    """
+    description="Gets conversation transcript in chunks. Returns: transcript chunk with metadata. Use when: retrieving large conversation transcripts."
 )
 async def get_conversation_transcript(
     conversation_id: str,
@@ -1514,13 +1377,17 @@ async def get_conversation_transcript(
     chunk: int = 1,
     chunk_size: int = 100
 ) -> TextContent:
-    """Get just the transcript from a conversation.
-    
+    """
+    Retrieves conversation transcript in chunks.
+
     Args:
-        conversation_id: The ID of the conversation
-        format: Format for the transcript ('plain', 'timestamps', 'json')
-        chunk: Which chunk to retrieve (1-based, default: 1)
-        chunk_size: Number of transcript entries per chunk (default: 100)
+        conversation_id: Conversation to retrieve
+        format: 'plain', 'timestamps', or 'json' (plain default)
+        chunk: Chunk number to retrieve (1 default)
+        chunk_size: Entries per chunk (100 default)
+
+    Note: Incurs API costs. Use multiple calls for full transcript.
+    Returns chunk metadata showing current/total chunks.
     """
     try:
         response = custom_client.get(
@@ -1631,57 +1498,7 @@ def split_dialogue_chunks(inputs, max_chars=2800):  # Leave buffer for safety
 
 
 @mcp.tool(
-    description="""🎭 Multi-Speaker Dialogue with ElevenLabs v3 (ALWAYS USES v3 MODEL)
-    
-    ⚡ QUICK START:
-    1. This tool AUTOMATICALLY uses v3 model - all v3 audio tags work!
-    2. For single speaker with v3 tags, use text_to_speech(model="v3") instead
-    3. For full tag list, call fetch_v3_tags() first
-    
-    ⚠️ LIMITS:
-    - 3000 character limit (excluding tags) - auto-splits if exceeded
-    - Stability auto-adjusts to nearest valid value (0.0, 0.5, 1.0)
-    - COST WARNING: This tool makes API calls to ElevenLabs which may incur costs
-    
-    💡 AUTOMATIC FEATURES:
-    - Long dialogues split into multiple files automatically
-    - Stability values rounded to nearest valid option
-    - Character count excludes tags so they don't reduce your content
-    
-    🎯 COMMON TAGS YOU CAN USE:
-    Emotions: [happy], [sad], [angry], [excited], [crying], [laughing], [whispering], [shouting]
-    Actions: [breathing heavily], [sighs], [coughing], [sniffling], [sobbing]
-    Sounds: [footsteps], [door opening], [thunder], [applause], [wind]
-    Voice: [soft], [loud], [fast], [slow], [trembling voice], [voice breaking]
-    Special: [pause], [long pause], [silence]
-    
-    📝 EXAMPLE - Simple conversation:
-    inputs = [
-        {"text": "Hey, how are you?", "voice_name": "James"},
-        {"text": "I'm doing great, thanks!", "voice_name": "Jane"}
-    ]
-    
-    📝 EXAMPLE - Emotional scene with tags:
-    inputs = [
-        {"text": "[whispering] Are you there? [footsteps approaching]", "voice_name": "Sarah"},
-        {"text": "[startled] Oh! [nervous laugh] You scared me!", "voice_name": "Mike"},
-        {"text": "[apologetic] Sorry... [pause] I have something to tell you.", "voice_name": "Sarah"}
-    ]
-    
-    💡 PRO TIPS:
-    - Combine tags: "[whispering] [crying] I miss you..."
-    - Environmental sounds work: "[rain falling] [thunder in distance]"
-    - Use pauses for drama: "I... [long pause] I love you."
-    - v3-optimized voices work best (James, Jane, Sarah, etc.)
-    
-    Args:
-        inputs: List of dialogue turns, each dict must have:
-            - text: The dialogue text with v3 audio tags
-            - voice_id OR voice_name: The voice to use
-        stability: Auto-adjusts to 0.0, 0.5, or 1.0 (default 0.5)
-        similarity_boost: Voice similarity (0-1, default 0.75)
-        output_directory: Where to save (default $HOME/Desktop)
-    """
+    description="Converts multi-speaker text to audio. Returns: dialogue audio file paths. Use when: creating conversations with multiple voices."
 )
 def text_to_dialogue(
     inputs: list[dict],
@@ -1871,16 +1688,7 @@ inputs = [
 
 
 @mcp.tool(
-    description="""Enhance dialogue text with proper formatting for v3 model generation. Analyzes text and suggests audio tags.
-    
-    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
-    
-    Args:
-        dialogue_blocks: List of dialogue text blocks to enhance
-        
-    Returns:
-        Enhanced dialogue with suggested audio tags and formatting
-    """
+    description="Adds audio tags to dialogue. Returns: enhanced text with v3 tags. Use when: improving dialogue with emotions and effects."
 )
 def enhance_dialogue(
     dialogue_blocks: list[str],
@@ -1921,22 +1729,7 @@ def enhance_dialogue(
 
 
 @mcp.tool(
-    description="""📋 Get list of v3 audio tags - CALL THIS FIRST before using v3!
-    
-    ⚡ WHEN TO USE:
-    - Before using text_to_speech with model="v3"
-    - Before using text_to_dialogue (which always uses v3)
-    - When user mentions: tags, emotions, sound effects, v3 features
-    - When you need examples of available audio tags
-    
-    🎯 RETURNS:
-    - Comprehensive list of emotional tags ([happy], [crying], etc.)
-    - Sound effect tags ([footsteps], [thunder], etc.)
-    - Voice modulation tags ([whispering], [shouting], etc.)
-    - Special control tags ([pause], [silence], etc.)
-    
-    💡 TIP: Always call this first to see all available options!
-    """
+    description="Lists v3 audio tags. Returns: comprehensive tag list. Use when: preparing text for v3 model with emotions and effects."
 )
 def fetch_v3_tags() -> TextContent:
     tags_list = """🎭 **ElevenLabs v3 Audio Tags** (not exhaustive - experiment!)
@@ -1973,16 +1766,7 @@ For full guide with best practices, use: get_v3_audio_tags_guide()"""
 
 
 @mcp.tool(
-    description="""Get comprehensive guide for using ElevenLabs v3 audio tags and best practices.
-    
-    This tool provides:
-    - Complete list of available audio tags
-    - Detailed best practices for v3 prompting
-    - Extended examples of effective tag usage
-    - Tips for different use cases
-    
-    No API call required - returns instructional content.
-    """
+    description="Gets v3 tag usage guide. Returns: detailed v3 documentation. Use when: learning how to use v3 audio tags effectively."
 )
 def get_v3_audio_tags_guide() -> TextContent:
     guide = """# ElevenLabs v3 Audio Tags & Best Practices Guide
