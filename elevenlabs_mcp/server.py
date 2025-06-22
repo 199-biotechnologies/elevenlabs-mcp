@@ -1381,19 +1381,49 @@ Started: {conv_started}"""
     
     ⚠️ COST WARNING: This tool makes API calls which may incur costs.
     
+    This tool returns transcripts in chunks to avoid token limits. Each response includes:
+    - The current chunk number and total chunks available
+    - A portion of the transcript (default: 100 entries per chunk)
+    
+    To get the full transcript:
+    1. Call with chunk=1 (or no chunk parameter) to get the first chunk
+    2. Check the response for total_chunks (shown as "Chunk X/Y" in output)
+    3. Make additional calls with chunk=2, chunk=3, etc. until you have all chunks
+    
     Args:
         conversation_id: The ID of the conversation
         format: Format for the transcript ('plain', 'timestamps', 'json')
+        chunk: Which chunk to retrieve (1-based, default: 1). Start with 1.
+        chunk_size: Number of transcript entries per chunk (default: 100)
     
     Returns:
-        The conversation transcript in the requested format
+        A chunk of the conversation transcript in the requested format.
+        The response always includes chunk metadata (e.g., "[Chunk 1/5]").
+        
+    Example usage:
+        # First call - get chunk 1 and see how many chunks exist
+        get_conversation_transcript(conversation_id="abc123")
+        # Output: "[Chunk 1/3] Entries 1-100 of 250 ..."
+        
+        # Get remaining chunks
+        get_conversation_transcript(conversation_id="abc123", chunk=2)
+        get_conversation_transcript(conversation_id="abc123", chunk=3)
     """
 )
 async def get_conversation_transcript(
     conversation_id: str,
-    format: Literal["plain", "timestamps", "json"] = "plain"
+    format: Literal["plain", "timestamps", "json"] = "plain",
+    chunk: int = 1,
+    chunk_size: int = 100
 ) -> TextContent:
-    """Get just the transcript from a conversation."""
+    """Get just the transcript from a conversation.
+    
+    Args:
+        conversation_id: The ID of the conversation
+        format: Format for the transcript ('plain', 'timestamps', 'json')
+        chunk: Which chunk to retrieve (1-based, default: 1)
+        chunk_size: Number of transcript entries per chunk (default: 100)
+    """
     try:
         response = custom_client.get(
             f"https://api.elevenlabs.io/v1/convai/conversations/{conversation_id}",
@@ -1411,14 +1441,36 @@ async def get_conversation_transcript(
         if not transcript_data:
             return TextContent(type="text", text="No transcript available for this conversation.")
         
+        # Calculate chunks
+        total_entries = len(transcript_data)
+        total_chunks = (total_entries + chunk_size - 1) // chunk_size
+        
+        # Validate chunk number
+        if chunk < 1 or chunk > total_chunks:
+            make_error(f"Invalid chunk {chunk}. Available chunks: 1-{total_chunks}")
+        
+        # Get the chunk
+        start_idx = (chunk - 1) * chunk_size
+        end_idx = min(start_idx + chunk_size, total_entries)
+        chunk_data = transcript_data[start_idx:end_idx]
+        
+        # Format the chunk
         if format == "json":
-            # Return raw JSON transcript
+            # Return raw JSON transcript chunk with metadata
             import json
-            return TextContent(type="text", text=json.dumps(transcript_data, indent=2))
+            chunk_info = {
+                "chunk": chunk,
+                "total_chunks": total_chunks,
+                "chunk_size": chunk_size,
+                "entries_in_chunk": len(chunk_data),
+                "total_entries": total_entries,
+                "transcript": chunk_data
+            }
+            return TextContent(type="text", text=json.dumps(chunk_info, indent=2))
         elif format == "timestamps":
             # Include timestamps
-            lines = []
-            for entry in transcript_data:
+            lines = [f"[Chunk {chunk}/{total_chunks}] Entries {start_idx+1}-{end_idx} of {total_entries}\n"]
+            for entry in chunk_data:
                 speaker = entry.get("speaker", "Unknown")
                 text = entry.get("text", "")
                 timestamp = entry.get("timestamp", "")
@@ -1429,8 +1481,8 @@ async def get_conversation_transcript(
             return TextContent(type="text", text="\n".join(lines))
         else:  # plain
             # Just speaker and text
-            lines = []
-            for entry in transcript_data:
+            lines = [f"[Chunk {chunk}/{total_chunks}] Entries {start_idx+1}-{end_idx} of {total_entries}\n"]
+            for entry in chunk_data:
                 speaker = entry.get("speaker", "Unknown")
                 text = entry.get("text", "")
                 lines.append(f"{speaker}: {text}")
