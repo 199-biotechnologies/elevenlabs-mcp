@@ -829,17 +829,7 @@ def create_agent(
 
 
 @mcp.tool(
-    description="""Add a knowledge base to ElevenLabs workspace. Allowed types are epub, pdf, docx, txt, html.
-
-    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
-
-    Args:
-        agent_id: ID of the agent to add the knowledge base to.
-        knowledge_base_name: Name of the knowledge base.
-        url: URL of the knowledge base.
-        input_file_path: Path to the file to add to the knowledge base.
-        text: Text to add to the knowledge base.
-    """
+    description="Adds knowledge to agent. Returns: knowledge base ID. Use when: giving agent access to documents or information."
 )
 def add_knowledge_base_to_agent(
     agent_id: str,
@@ -952,10 +942,7 @@ def get_agent(agent_id: str) -> TextContent:
 
 
 @mcp.tool(
-    description="""Transform audio from one voice to another using provided audio files.
-
-    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
-    """
+    description="Transforms voice in audio. Returns: audio file with new voice. Use when: changing speaker voice in existing audio."
 )
 def speech_to_speech(
     input_file_path: str,
@@ -1006,14 +993,7 @@ def speech_to_speech(
 
 
 @mcp.tool(
-    description="""Create voice previews from a text prompt. Creates three previews with slight variations. Saves the previews to a given directory. If no text is provided, the tool will auto-generate text.
-
-    Voice preview files are saved as: voice_design_(generated_voice_id)_(timestamp).mp3
-
-    Example file name: voice_design_Ya2J5uIa5Pq14DNPsbC1_20250403_164949.mp3
-
-    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
-    """
+    description="Creates voice from description. Returns: three voice preview files. Use when: designing custom voice from text prompt."
 )
 def text_to_voice(
     voice_description: str,
