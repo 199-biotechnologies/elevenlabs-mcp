@@ -152,7 +152,7 @@ mcp = FastMCP("ElevenLabs")
 
 
 @mcp.tool(
-    description="Converts text to speech audio. Returns: audio file path. Use when: single speaker narration, voiceover, or monologue needed."
+    description="Converts text to speech (v2/flash models). Returns: audio file path. Use when: single speaker narration with v2 or flash models. For v3 with tags, use text_to_speech_v3."
 )
 def text_to_speech(
     text: str,
@@ -169,7 +169,7 @@ def text_to_speech(
     output_format: str = "mp3_44100_128",
 ):
     """
-    Converts text to speech using ElevenLabs voices.
+    Converts text to speech using v2 or flash models.
 
     Args:
         text: The text to convert to speech
@@ -180,16 +180,23 @@ def text_to_speech(
         style: Style exaggeration 0-1 (0 default)
         use_speaker_boost: Enhanced similarity (true default)
         speed: Speech speed 0.7-1.2 (1.0 default)
-        model: v2 (default), v3 (with tags), or flash (fast)
+        model: 'v2' (default) or 'flash' (fast) - v3 not supported here
         output_format: Audio format (mp3_44100_128 default)
         output_directory: Save location (Desktop default)
         language: ISO 639-1 code (en default)
 
-    Note: Incurs API costs. For multiple speakers use text_to_dialogue.
-    For v3 audio tags, call fetch_v3_tags first.
+    Note: Incurs API costs. For v3 with tags use text_to_speech_v3.
+    For multiple speakers use text_to_dialogue.
     """
     if text == "":
         make_error("Text is required.")
+    
+    if model == "v3":
+        make_error(
+            "v3 model not supported in text_to_speech",
+            code="WRONG_TOOL",
+            suggestion="Use text_to_speech_v3() for v3 model with audio tags support"
+        )
 
     if voice_id is not None and voice_name is not None:
         make_error("voice_id and voice_name cannot both be provided.")
@@ -374,6 +381,45 @@ Common voice IDs:
     return TextContent(
         type="text",
         text=f"Success. File saved as: {output_path / output_file_name}. Voice used: {voice.name if voice else DEFAULT_VOICE_ID}",
+    )
+
+
+@mcp.tool(
+    description="Converts text to speech with v3 model and tags. Returns: audio file path. Use when: single speaker needs emotions, pauses, or sound effects."
+)
+def text_to_speech_v3(
+    text: str,
+    voice_name: str | None = None,
+    output_directory: str | None = None,
+    voice_id: str | None = None,
+    stability: float = 0.5,
+    similarity_boost: float = 0.75,
+) -> TextContent:
+    """
+    Converts text to speech using v3 model with audio tags support.
+
+    Args:
+        text: Text with v3 tags like [happy], [pause], [whisper]
+        voice_name: Voice name (defaults to v3-optimized voice)
+        voice_id: Direct voice ID (overrides voice_name)
+        stability: Must be 0.0, 0.5, or 1.0 for v3
+        similarity_boost: Voice similarity 0-1
+        output_directory: Save location (Desktop default)
+
+    Note: Incurs API costs. Always uses v3 model.
+    Call fetch_v3_tags() to see available tags.
+    """
+    # Default to James (v3-optimized) if no voice specified
+    if not voice_id and not voice_name:
+        voice_name = "James"
+        voice_id = "EkK5I93UQWFDigLMpZcX"
+    
+    # Use text_to_dialogue for v3 (single speaker)
+    return text_to_dialogue(
+        inputs=[{"text": text, "voice_name": voice_name, "voice_id": voice_id}],
+        stability=stability,
+        similarity_boost=similarity_boost,
+        output_directory=output_directory
     )
 
 
@@ -1709,7 +1755,7 @@ def enhance_dialogue(
 
 
 @mcp.tool(
-    description="Lists v3 audio tags. Returns: comprehensive tag list. Use when: preparing text for v3 model with emotions and effects."
+    description="Lists v3 audio tags. Returns: comprehensive tag list. Use when: preparing text for text_to_speech_v3 or text_to_dialogue with emotions and effects."
 )
 def fetch_v3_tags() -> TextContent:
     tags_list = """🎭 **ElevenLabs v3 Audio Tags** (not exhaustive - experiment!)
