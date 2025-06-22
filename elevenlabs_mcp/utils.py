@@ -5,11 +5,23 @@ from fuzzywuzzy import fuzz
 
 
 class ElevenLabsMcpError(Exception):
-    pass
+    def __init__(self, message: str, code: str = None, suggestion: str = None):
+        self.message = message
+        self.code = code
+        self.suggestion = suggestion
+        
+        # Build the full error message
+        full_message = message
+        if code:
+            full_message = f"[{code}] {full_message}"
+        if suggestion:
+            full_message += f"\nSuggestion: {suggestion}"
+            
+        super().__init__(full_message)
 
 
-def make_error(error_text: str):
-    raise ElevenLabsMcpError(error_text)
+def make_error(error_text: str, code: str = None, suggestion: str = None):
+    raise ElevenLabsMcpError(error_text, code, suggestion)
 
 
 def is_file_writeable(path: Path) -> bool:
@@ -39,7 +51,11 @@ def make_output_path(
     else:
         output_path = Path(os.path.expanduser(output_directory))
     if not is_file_writeable(output_path):
-        make_error(f"Directory ({output_path}) is not writeable")
+        make_error(
+            f"Directory ({output_path}) is not writeable",
+            code="DIRECTORY_NOT_WRITEABLE",
+            suggestion="Check directory permissions or use a different output directory"
+        )
     output_path.mkdir(parents=True, exist_ok=True)
     return output_path
 
@@ -113,7 +129,9 @@ def check_audio_file(path: Path) -> bool:
 def handle_input_file(file_path: str, audio_content_check: bool = True) -> Path:
     if not os.path.isabs(file_path) and not os.environ.get("ELEVENLABS_MCP_BASE_PATH"):
         make_error(
-            "File path must be an absolute path if ELEVENLABS_MCP_BASE_PATH is not set"
+            "File path must be an absolute path if ELEVENLABS_MCP_BASE_PATH is not set",
+            code="RELATIVE_PATH_ERROR",
+            suggestion="Use an absolute path starting with / (Unix) or C:\\ (Windows), or set ELEVENLABS_MCP_BASE_PATH environment variable"
         )
     path = Path(file_path)
     if not path.exists() and path.parent.exists():
@@ -122,14 +140,32 @@ def handle_input_file(file_path: str, audio_content_check: bool = True) -> Path:
         similar_files_formatted = ",".join([str(file) for file in similar_files])
         if similar_files:
             make_error(
-                f"File ({path}) does not exist. Did you mean any of these files: {similar_files_formatted}?"
+                f"File ({path}) does not exist",
+                code="FILE_NOT_FOUND",
+                suggestion=f"Did you mean any of these files: {similar_files_formatted}?"
             )
-        make_error(f"File ({path}) does not exist")
+        make_error(
+            f"File ({path}) does not exist",
+            code="FILE_NOT_FOUND",
+            suggestion="Check the file path and ensure the file exists"
+        )
     elif not path.exists():
-        make_error(f"File ({path}) does not exist")
+        make_error(
+            f"File ({path}) does not exist",
+            code="FILE_NOT_FOUND",
+            suggestion="Check the file path and ensure the file exists"
+        )
     elif not path.is_file():
-        make_error(f"File ({path}) is not a file")
+        make_error(
+            f"Path ({path}) is not a file",
+            code="NOT_A_FILE",
+            suggestion="Ensure the path points to a file, not a directory"
+        )
 
     if audio_content_check and not check_audio_file(path):
-        make_error(f"File ({path}) is not an audio or video file")
+        make_error(
+            f"File ({path}) is not an audio or video file",
+            code="INVALID_FILE_TYPE",
+            suggestion="Use a supported audio format: wav, mp3, m4a, aac, ogg, flac, mp4, avi, mov, wmv"
+        )
     return path

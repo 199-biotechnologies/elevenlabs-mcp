@@ -258,31 +258,27 @@ Common voice IDs:
         voices = client.voices.search(search=voice_name)
         if len(voices.voices) == 0:
             # Provide helpful suggestions
-            make_error(f"""No voices found with name '{voice_name}'!
-            
-🎯 QUICK FIX: Try these working voices:
-- "James" (EkK5I93UQWFDigLMpZcX) - husky & engaging, v3-optimized
-- "Jane" (RILOU7YmBhvwJGDGjNmP) - professional audiobook reader, v3-optimized  
-- "Mark" (1SM7GgM6IMuvQlz2BwM3) - ConvoAI optimized, v3-optimized
-- "Adam" (pNInz6obpgDQGcFmaJgB) - versatile male voice
-- "Rachel" (21m00Tcm4TlvDq8ikWAM) - conversational American female
-
-💡 PRO TIP: Use search_voices() first to see all available voices!
-Example: search_voices("female") → Returns female voices → Pick one""")
+            make_error(
+                f"No voices found with name '{voice_name}'",
+                code="VOICE_NOT_FOUND",
+                suggestion="Use get_voice_id_by_name() for fuzzy matching, or search_voices() to list all available voices"
+            )
         voice = next((v for v in voices.voices if v.name == voice_name), None)
         if voice is None:
             # Check for partial matches
             partial_matches = [v.name for v in voices.voices if voice_name.lower() in v.name.lower()]
             if partial_matches:
-                make_error(f"""Exact match for '{voice_name}' not found!
-                
-Did you mean one of these? {', '.join(partial_matches[:5])}
-
-💡 TIP: Voice names are case-sensitive. Use exact names from search_voices()""")
+                make_error(
+                    f"Exact match for '{voice_name}' not found",
+                    code="VOICE_PARTIAL_MATCH",
+                    suggestion=f"Did you mean one of these? {', '.join(partial_matches[:5])}. Use get_voice_id_by_name() for automatic matching"
+                )
             else:
-                make_error(f"""Voice '{voice_name}' does not exist!
-                
-🎯 Try search_voices() without arguments to get common working voices instantly!""")
+                make_error(
+                    f"Voice '{voice_name}' does not exist",
+                    code="VOICE_NOT_FOUND",
+                    suggestion="Try search_voices() to see all available voices"
+                )
 
     voice_id = voice.voice_id if voice else DEFAULT_VOICE_ID
 
@@ -520,7 +516,11 @@ def text_to_sound_effects(
     output_format: str = "mp3_44100_128"
 ) -> list[TextContent]:
     if duration_seconds < 0.5 or duration_seconds > 5:
-        make_error("Duration must be between 0.5 and 5 seconds")
+        make_error(
+            "Duration must be between 0.5 and 5 seconds",
+            code="INVALID_DURATION",
+            suggestion="Use a duration between 0.5 and 5 seconds"
+        )
     output_path = make_output_path(output_directory, base_path)
     output_file_name = make_output_file("sfx", text, output_path, "mp3")
 
@@ -559,16 +559,18 @@ def text_to_sound_effects(
         search: Optional search term. Leave empty for common voices!
         sort: Sort by "name" or "created_at_unix"
         sort_direction: "asc" or "desc"
+        return_format: "json" for structured data (default), "text" for human-readable
 
     Returns:
-        Ready-to-use voice list with names AND IDs for easy copying
+        Structured JSON with voice details or formatted text list
     """
 )
 def search_voices(
     search: str | None = None,
     sort: Literal["created_at_unix", "name"] = "name",
     sort_direction: Literal["asc", "desc"] = "desc",
-) -> list[McpVoice]:
+    return_format: Literal["json", "text"] = "json",
+) -> TextContent:
     # Common working voices that AI should use by default
     common_voices = {
         "James": "husky & engaging audiobook narrator, v3-optimized (ID: EkK5I93UQWFDigLMpZcX)",
@@ -651,9 +653,105 @@ def search_voices(
             else:
                 other_voices.append(voice)
         
-        return v3_voices + other_voices
+        voices = v3_voices + other_voices
     
-    return voices
+    # Format the response
+    if return_format == "json":
+        import json
+        voice_data = {
+            "total_count": len(voices),
+            "search_term": search,
+            "voices": [
+                {
+                    "voice_id": voice.id,
+                    "name": voice.name,
+                    "category": voice.category,
+                    "is_v3_optimized": voice.name in v3_optimized_names if search and "v3" in search.lower() else None
+                }
+                for voice in voices
+            ]
+        }
+        return TextContent(type="text", text=json.dumps(voice_data, indent=2))
+    else:
+        # Legacy text format
+        lines = [f"Found {len(voices)} voices:\n"]
+        for voice in voices:
+            lines.append(f"- {voice.name} (ID: {voice.id}) - {voice.category or 'general'}")
+        return TextContent(type="text", text="\n".join(lines))
+
+
+@mcp.tool(
+    description="""Get voice ID by voice name - AI-FRIENDLY helper!
+    
+    This tool automatically resolves voice names to IDs, handling:
+    - Exact matches (case-insensitive)
+    - Fuzzy matching for typos
+    - Returns the best match with confidence score
+    
+    Use this when you have a voice name but need the ID for other tools.
+    
+    Args:
+        voice_name: The name of the voice to find
+        
+    Returns:
+        JSON with voice_id, exact name, and match confidence
+        
+    Example:
+        get_voice_id_by_name("james") → {"voice_id": "EkK5I93...", "name": "James", "confidence": 100}
+    """
+)
+def get_voice_id_by_name(voice_name: str) -> TextContent:
+    import json
+    from fuzzywuzzy import fuzz
+    
+    try:
+        # Get all voices
+        all_voices_response = client.voices.get_all()
+        
+        # First try exact match (case-insensitive)
+        for voice in all_voices_response.voices:
+            if voice.name.lower() == voice_name.lower():
+                result = {
+                    "voice_id": voice.voice_id,
+                    "name": voice.name,
+                    "confidence": 100,
+                    "match_type": "exact"
+                }
+                return TextContent(type="text", text=json.dumps(result, indent=2))
+        
+        # If no exact match, try fuzzy matching
+        best_match = None
+        best_score = 0
+        
+        for voice in all_voices_response.voices:
+            score = fuzz.ratio(voice.name.lower(), voice_name.lower())
+            if score > best_score:
+                best_score = score
+                best_match = voice
+        
+        # Only return fuzzy match if confidence is above 70%
+        if best_match and best_score >= 70:
+            result = {
+                "voice_id": best_match.voice_id,
+                "name": best_match.name,
+                "confidence": best_score,
+                "match_type": "fuzzy",
+                "original_query": voice_name
+            }
+            return TextContent(type="text", text=json.dumps(result, indent=2))
+        else:
+            make_error(
+                f"No voice found matching '{voice_name}'",
+                code="VOICE_NOT_FOUND",
+                suggestion="Use search_voices() to see available voices, or check spelling"
+            )
+            
+    except Exception as e:
+        make_error(
+            f"Failed to find voice: {str(e)}",
+            code="VOICE_LOOKUP_ERROR",
+            suggestion="Try search_voices() instead"
+        )
 
 
 @mcp.tool(description="List all available models")
@@ -1431,9 +1529,17 @@ async def get_conversation_transcript(
         )
         
         if response.status_code == 404:
-            make_error(f"Conversation with ID {conversation_id} not found")
+            make_error(
+                f"Conversation with ID {conversation_id} not found",
+                code="CONVERSATION_NOT_FOUND",
+                suggestion="Check the conversation ID or use list_conversations() to see available conversations"
+            )
         elif response.status_code != 200:
-            make_error(f"API error: {response.status_code} - {response.text}")
+            make_error(
+                f"API error: {response.status_code} - {response.text}",
+                code="API_ERROR",
+                suggestion="Check your API key and network connection"
+            )
         
         data = response.json()
         transcript_data = data.get("transcript", [])
