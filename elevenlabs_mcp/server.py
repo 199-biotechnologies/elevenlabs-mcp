@@ -1280,11 +1280,11 @@ async def get_conversation(
             if transcript_data:
                 transcript_lines = []
                 for entry in transcript_data:
-                    speaker = entry.get("speaker", "Unknown")
-                    text = entry.get("text", "")
-                    timestamp = entry.get("timestamp", "")
-                    if timestamp:
-                        transcript_lines.append(f"[{timestamp}] {speaker}: {text}")
+                    speaker = entry.get("role", "Unknown")
+                    text = entry.get("message", "")
+                    timestamp = entry.get("time_in_call_secs", "")
+                    if timestamp != "":
+                        transcript_lines.append(f"[{timestamp}s] {speaker}: {text}")
                     else:
                         transcript_lines.append(f"{speaker}: {text}")
                 transcript = "\n".join(transcript_lines)
@@ -1470,11 +1470,11 @@ async def get_conversation_transcript(
             # Include timestamps
             lines = [f"[Chunk {chunk}/{total_chunks}] Entries {start_idx+1}-{end_idx} of {total_entries}\n"]
             for entry in chunk_data:
-                speaker = entry.get("speaker", "Unknown")
-                text = entry.get("text", "")
-                timestamp = entry.get("timestamp", "")
-                if timestamp:
-                    lines.append(f"[{timestamp}] {speaker}: {text}")
+                speaker = entry.get("role", "Unknown")
+                text = entry.get("message", "")
+                timestamp = entry.get("time_in_call_secs", "")
+                if timestamp != "":
+                    lines.append(f"[{timestamp}s] {speaker}: {text}")
                 else:
                     lines.append(f"{speaker}: {text}")
             return TextContent(type="text", text="\n".join(lines))
@@ -1482,8 +1482,8 @@ async def get_conversation_transcript(
             # Just speaker and text
             lines = [f"[Chunk {chunk}/{total_chunks}] Entries {start_idx+1}-{end_idx} of {total_entries}\n"]
             for entry in chunk_data:
-                speaker = entry.get("speaker", "Unknown")
-                text = entry.get("text", "")
+                speaker = entry.get("role", "Unknown")
+                text = entry.get("message", "")
                 lines.append(f"{speaker}: {text}")
             return TextContent(type="text", text="\n".join(lines))
             
